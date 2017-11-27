@@ -26,18 +26,19 @@ class box PeerMsgHello is PeerMsg
 
 class Peer
   let addr: PeerAddr
-  let listen_side: Bool
-  var established: Bool = false
-  new create(addr': PeerAddr, listen_side': Bool) =>
-    (addr, listen_side) = (addr', listen_side')
+  new create(addr': PeerAddr) =>
+    (addr) = (addr')
 
 type _Listen is TCPListener
 
 class iso PeerListenNotify is TCPListenNotify
   let _cluster: Cluster
-  new iso create(cluster': Cluster) => _cluster = cluster'
+  let _signature: Array[U8] val
+  new iso create(cluster': Cluster, signature': Array[U8] val) =>
+    (_cluster, _signature) = (cluster', signature')
   
   fun ref not_listening(listen: TCPListener ref) => _cluster._listen_failed()
   fun ref listening(listen: TCPListener ref) => _cluster._listen_ready()
   fun ref connected(listen: TCPListener ref): FramedNotify^ =>
-    FramedNotify(_cluster)
+    let inner: TCPConnectionNotify iso = ClusterNotify(_cluster, _signature)
+    FramedNotify(consume inner)

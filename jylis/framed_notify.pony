@@ -1,7 +1,5 @@
 use "net"
 
-type _Conn is TCPConnection
-
 class iso FramedNotify is TCPConnectionNotify
   """
   This notify class is a simple protocol layer on top of TCP that provides
@@ -16,30 +14,30 @@ class iso FramedNotify is TCPConnectionNotify
   methods (for one frame and many frames, respectively), and this class will
   handle translating each byte buffer to an encoded frame "behind the scenes".
   
-  All events are reported back to the Cluster, which "owns" the TCPConnection,
-  including connection status updates, protocol errors, and frames received.
+  Events are reported back to the wrapped TCPConnectionNotify object, which
+  will get an entire frame passed to each call of its `received` method.
   """
-  let _cluster: Cluster
+  let _notify: TCPConnectionNotify
   var _expect: USize = 0
   
-  new iso create(cluster': Cluster) => _cluster = cluster'
+  new iso create(notify': TCPConnectionNotify iso) => _notify = consume notify'
   
   fun ref accepted(conn: _Conn ref) =>
-    _cluster._peer_accepted(conn)
+    _notify.accepted(conn)
     _expect_framing(conn)
+  
+  fun ref connecting(conn: _Conn ref, count: U32) =>
+    _notify.connecting(conn, count)
   
   fun ref connected(conn: _Conn ref) =>
-    _cluster._peer_connected(conn)
+    _notify.connected(conn)
     _expect_framing(conn)
   
-  fun ref connect_failed(conn: _Conn ref) =>
-    _cluster._peer_missed(conn)
-  
-  fun ref closed(conn: TCPConnection ref) =>
-    _cluster._peer_lost(conn)
-  
-  fun ref throttled(conn: TCPConnection ref) => None // TODO
-  fun ref unthrottled(conn: TCPConnection ref) => None // TODO
+  fun ref connect_failed(conn: _Conn ref) => _notify.connect_failed(conn)
+  fun ref auth_failed(conn: _Conn ref) => _notify.auth_failed(conn)
+  fun ref closed(conn: TCPConnection ref) => _notify.closed(conn)
+  fun ref throttled(conn: TCPConnection ref) => _notify.throttled(conn)
+  fun ref unthrottled(conn: TCPConnection ref) => _notify.unthrottled(conn)
   
   fun ref _expect_framing(conn: _Conn ref) =>
     _expect = 0
@@ -52,6 +50,7 @@ class iso FramedNotify is TCPConnectionNotify
   fun ref sent(conn: _Conn ref, data: ByteSeq): ByteSeq =>
     conn.write_final(Framing.write_header(data.size()))
     conn.write_final(data)
+    // TODO: call _notify.sent?
     ""
   
   fun ref sentv(conn: _Conn ref, array: ByteSeqIter): ByteSeqIter =>
@@ -59,15 +58,20 @@ class iso FramedNotify is TCPConnectionNotify
       conn.write_final(Framing.write_header(data.size()))
       conn.write_final(data)
     end
+    // TODO: call _notify.sentv?
     []
+  
+  fun ref expect(conn: _Conn ref, qty: USize): USize =>
+    // Disregard the requested expect - just reassert our own current choice.
+    if _expect == 0 then Framing.header_size() else _expect end
   
   fun ref received(conn: _Conn ref, data: Array[U8] iso, times: USize): Bool =>
     if _expect == 0 then
       try _expect_bytes(conn, Framing.parse_header(consume data)?)
-      else _cluster._peer_error(conn, "misaligned framing header in protocol")
+      else _notify.auth_failed(conn)
       end
+      true
     else
-      _cluster._peer_frame(conn, consume data)
       _expect_framing(conn)
+      _notify.received(conn, consume data, times)
     end
-    true
