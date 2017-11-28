@@ -19,13 +19,19 @@ class iso ClusterNotify is TCPConnectionNotify
     conn.write(_signature)
   
   fun ref connect_failed(conn: _Conn ref) =>
-    _cluster._peer_missed(conn)
+    _cluster._active_missed(conn)
   
   fun ref auth_failed(conn: _Conn ref) =>
-    _cluster._peer_error(conn, "misaligned framing header in protocol")
+    if _passive
+    then _cluster._passive_error(conn, "misaligned framing header in protocol")
+    else _cluster._active_error(conn, "misaligned framing header in protocol")
+    end
   
   fun ref closed(conn: TCPConnection ref) =>
-    _cluster._peer_lost(conn)
+    if _passive
+    then _cluster._passive_lost(conn)
+    else _cluster._active_lost(conn)
+    end
   
   fun ref throttled(conn: TCPConnection ref) => None // TODO
   fun ref unthrottled(conn: TCPConnection ref) => None // TODO
@@ -45,14 +51,20 @@ class iso ClusterNotify is TCPConnectionNotify
       then
         _established = true
         if _passive
-        then _cluster._peer_accepted(conn)
-        else _cluster._peer_connected(conn)
+        then _cluster._passive_accepted(conn)
+        else _cluster._active_initiated(conn)
         end
       else
-        _cluster._peer_error(conn, "invalid serialise signature")
+        if _passive
+        then _cluster._passive_error(conn, "invalid serialise signature")
+        else _cluster._active_error(conn, "invalid serialise signature")
+        end
         conn.dispose() // TODO: time delay? review protocol design and decide...
       end
     else
-      _cluster._peer_frame(conn, consume data)
+      if _passive
+      then _cluster._passive_frame(conn, consume data)
+      else _cluster._active_frame(conn, consume data)
+      end
     end
     true
