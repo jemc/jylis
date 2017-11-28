@@ -10,8 +10,8 @@ class TestCluster is UnitTest
     
     let log = StringLogger(Fine, h.env.out)
     
-    let foo = ("127.0.0.1", "9999", "foo")
-    let bar = ("127.0.0.1", "9998", "bar")
+    let foo = Address("127.0.0.1", "9999", "foo")
+    let bar = Address("127.0.0.1", "9998", "bar")
     
     let foo_c = Cluster(h.env.root as AmbientAuth, log, foo, [])
     let bar_c = Cluster(h.env.root as AmbientAuth, log, bar, [foo])
