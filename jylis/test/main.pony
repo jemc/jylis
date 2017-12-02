@@ -7,3 +7,4 @@ actor Main is TestList
   fun tag tests(test: PonyTest) =>
     test(TestFraming)
     test(TestCluster)
+    test(TestNameGenerator)
