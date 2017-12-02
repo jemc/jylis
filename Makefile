@@ -1,7 +1,11 @@
-all: test
+all: bin/jylis
 .PHONY: all test clean lldb lldb-test ci ci-setup
 
 PKG=jylis
+
+bin/${PKG}: $(shell find ${PKG} -name *.pony)
+	mkdir -p bin
+	stable env ponyc --debug -o bin ${PKG}
 
 bin/test: $(shell find ${PKG} -name *.pony)
 	mkdir -p bin
