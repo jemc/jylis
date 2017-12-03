@@ -1,11 +1,10 @@
-use logger = "logger"
 use "resp"
 
 actor Server
-  let _log: logger.Logger[String]
+  let _log: Log
   let _listen: _Listen
   
-  new create(auth': AmbientAuth, log': logger.Logger[String], port': String) =>
+  new create(auth': AmbientAuth, log': Log, port': String) =>
     _log = log'
     
     let listen_notify = ServerListenNotify(this)
@@ -15,12 +14,12 @@ actor Server
     _listen.dispose()
   
   be _listen_failed() =>
-    _log(logger.Error) and _log.log("listen failed")
+    _log.err() and _log("listen failed")
     dispose()
   
   be _listen_ready() => None
-    _log(logger.Info) and _log.log("listen ready")
+    _log.info() and _log("listen ready")
   
   be apply(cmd: ElementsAny, resp: Respond) =>
-    _log(logger.Fine) and _log.log(cmd.string())
+    _log.fine() and _log(cmd)
     resp.ok()

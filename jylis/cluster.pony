@@ -1,10 +1,9 @@
 use "collections"
 use "crdt"
-use "logger"
 
 actor Cluster
   let _auth: AmbientAuth // TODO: de-escalate to NetAuth
-  let _log: Logger[String]
+  let _log: Log
   let _my_addr: Address
   let _serial: _Serialise
   let _listen: _Listen
@@ -17,7 +16,7 @@ actor Cluster
   
   new create(
     auth': AmbientAuth,
-    log': Logger[String],
+    log': Log,
     my_addr': Address,
     known_addrs': Array[Address] val)
   =>
@@ -112,52 +111,52 @@ actor Cluster
     _sync_actives()
   
   be _listen_failed() =>
-    _log(Error) and _log.log("listen failed")
+    _log.err() and _log("listen failed")
     dispose()
   
   be _listen_ready() => None
-    _log(Info) and _log.log("listen ready")
+    _log.info() and _log("listen ready")
   
   be _passive_accepted(conn: _Conn tag) =>
-    _log(Info) and _log.log("passive connection accepted")
+    _log.info() and _log("passive connection accepted")
     _passives.set(conn)
     _last_activity(conn) = _tick
   
   be _active_connected(conn: _Conn tag) =>
-    _log(Info) and _log.log("active connection connected")
+    _log.info() and _log("active connection connected")
     _last_activity(conn) = _tick
   
   be _passive_initiated(conn: _Conn tag) =>
-    _log(Info) and _log.log("passive connection initiated")
+    _log.info() and _log("passive connection initiated")
   
   be _active_initiated(conn: _Conn tag) =>
-    _log(Info) and _log.log("active connection initiated")
+    _log.info() and _log("active connection initiated")
     _send(conn, MsgExchangeAddrs(_known_addrs))
   
   be _active_missed(conn: _Conn tag) =>
-    _log(Warn) and _log.log("active connection missed")
+    _log.warn() and _log("active connection missed")
     _remove_active(conn)
   
   be _passive_lost(conn: _Conn tag) =>
-    _log(Warn) and _log.log("passive connection lost")
+    _log.warn() and _log("passive connection lost")
     _remove_passive(conn)
   
   be _active_lost(conn: _Conn tag) =>
-    _log(Warn) and _log.log("active connection lost")
+    _log.warn() and _log("active connection lost")
     _remove_active(conn)
   
-  be _passive_error(conn: _Conn tag, message: String) =>
-    _log(Warn) and _log.log("passive connection error: " + message)
+  be _passive_error(conn: _Conn tag, a: String, b: (String | None) = None) =>
+    _log.warn() and _log("passive connection error", a, b)
     _remove_passive(conn)
   
-  be _active_error(conn: _Conn tag, message: String) =>
-    _log(Warn) and _log.log("active connection error: " + message)
+  be _active_error(conn: _Conn tag, a: String, b: (String | None) = None) =>
+    _log.warn() and _log("active connection error", a, b)
     _remove_active(conn)
   
   be _passive_frame(conn: _Conn tag, data: Array[U8] val) =>
     try
       let msg = _serial.from_bytes[Msg](data)?
-      _log(Fine) and _log.log("received " + msg.string())
+      _log.fine() and _log("received", msg)
       _passive_msg(conn, msg)
     else
       _passive_error(conn, "invalid message on passive connection")
@@ -166,16 +165,16 @@ actor Cluster
   be _active_frame(conn: _Conn tag, data: Array[U8] val) =>
     try
       let msg = _serial.from_bytes[Msg](data)?
-      _log(Fine) and _log.log("received " + msg.string())
+      _log.fine() and _log("received", msg)
       _active_msg(conn, msg)
     else
       _active_error(conn, "invalid message on active connection")
     end
   
   fun ref _send(conn: _Conn tag, msg: Msg) =>
-    _log(Fine) and _log.log("sending " + msg.string())
+    _log.fine() and _log("sending", msg)
     try conn.write(_serial.to_bytes(msg)?)
-    else _log(Error) and _log.log("failed to serialise message")
+    else _log.err() and _log("failed to serialise message")
     end
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
@@ -198,7 +197,7 @@ actor Cluster
       _converge_addrs(msg.known_addrs)
       _send(conn, MsgPong)
     else
-      _passive_error(conn, "unhandled message: " + msg'.string())
+      _passive_error(conn, "unhandled message", msg'.string())
     end
   
   fun ref _active_msg(conn: _Conn tag, msg': Msg) =>
@@ -208,5 +207,5 @@ actor Cluster
     | let msg: MsgExchangeAddrs =>
       _converge_addrs(msg.known_addrs)
     else
-      _active_error(conn, "unhandled message: " + msg'.string())
+      _active_error(conn, "unhandled message", msg'.string())
     end

@@ -1,5 +1,4 @@
 use "ponytest"
-use "logger"
 use ".."
 
 class TestCluster is UnitTest
@@ -8,7 +7,7 @@ class TestCluster is UnitTest
   fun apply(h: TestHelper)? =>
     h.long_test(5_000_000_000)
     
-    let log = StringLogger(Fine, h.env.out)
+    let log = Log.create_fine(h.env.out)
     
     let foo = Address("127.0.0.1", "9999", "foo")
     let bar = Address("127.0.0.1", "9998", "bar")
