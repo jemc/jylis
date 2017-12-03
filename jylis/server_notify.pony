@@ -26,9 +26,9 @@ class iso ServerNotify is TCPConnectionNotify
   
   fun ref connect_failed(c: _Conn ref) => None // we only accept, never connect
   
-  fun ref closed(conn: TCPConnection ref) => None // TODO?
-  fun ref throttled(conn: TCPConnection ref) => None // TODO?
-  fun ref unthrottled(conn: TCPConnection ref) => None // TODO?
+  fun ref closed(conn: _Conn ref) => None // TODO?
+  fun ref throttled(conn: _Conn ref) => None // TODO?
+  fun ref unthrottled(conn: _Conn ref) => None // TODO?
   
   fun ref received(conn: _Conn ref, data: Array[U8] val, times: USize): Bool =>
     _parser.append(data)

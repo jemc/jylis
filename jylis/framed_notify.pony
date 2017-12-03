@@ -35,9 +35,9 @@ class iso FramedNotify is TCPConnectionNotify
   
   fun ref connect_failed(conn: _Conn ref) => _notify.connect_failed(conn)
   fun ref auth_failed(conn: _Conn ref) => _notify.auth_failed(conn)
-  fun ref closed(conn: TCPConnection ref) => _notify.closed(conn)
-  fun ref throttled(conn: TCPConnection ref) => _notify.throttled(conn)
-  fun ref unthrottled(conn: TCPConnection ref) => _notify.unthrottled(conn)
+  fun ref closed(conn: _Conn ref) => _notify.closed(conn)
+  fun ref throttled(conn: _Conn ref) => _notify.throttled(conn)
+  fun ref unthrottled(conn: _Conn ref) => _notify.unthrottled(conn)
   
   fun ref _expect_framing(conn: _Conn ref) =>
     _expect = 0

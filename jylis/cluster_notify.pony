@@ -1,7 +1,5 @@
 use "net"
 
-type _Conn is TCPConnection
-
 class iso ClusterNotify is TCPConnectionNotify
   let _cluster: Cluster
   let _signature: Array[U8] val
@@ -27,14 +25,14 @@ class iso ClusterNotify is TCPConnectionNotify
     else _cluster._active_error(conn, "misaligned framing header in protocol")
     end
   
-  fun ref closed(conn: TCPConnection ref) =>
+  fun ref closed(conn: _Conn ref) =>
     if _passive
     then _cluster._passive_lost(conn)
     else _cluster._active_lost(conn)
     end
   
-  fun ref throttled(conn: TCPConnection ref) => None // TODO
-  fun ref unthrottled(conn: TCPConnection ref) => None // TODO
+  fun ref throttled(conn: _Conn ref) => None // TODO
+  fun ref unthrottled(conn: _Conn ref) => None // TODO
   
   fun ref received(conn: _Conn ref, data: Array[U8] val, times: USize): Bool =>
     if not _established then
