@@ -3,6 +3,7 @@ use "resp"
 actor Server
   let _log: Log
   let _listen: _Listen
+  let _repo: Repo = Repo
   
   new create(auth': AmbientAuth, log': Log, port': String) =>
     _log = log'
@@ -21,5 +22,15 @@ actor Server
     _log.info() and _log("listen ready")
   
   be apply(cmd: ElementsAny, resp: Respond) =>
-    _log.fine() and _log(cmd)
-    resp.ok()
+    try
+      match cmd(0)?
+      | "TPUTS" =>
+        _repo.tputs(resp, cmd(1)? as String, cmd(2)? as String, (cmd(3)? as String).u64()?)
+      | "TGETS" =>
+        _repo.tgets(resp, cmd(1)? as String)
+      else error
+      end
+    else
+      _log.err() and _log("couldn't parse command", cmd)
+      resp.err("BADCOMMAND couldn't parse command")
+    end
