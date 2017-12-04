@@ -7,16 +7,16 @@ primitive _OutNone
 
 class iso ServerNotify is TCPConnectionNotify
   let _server: Server
-  var _parser: Parser
+  var _parser: CommandParser
   var _resp: Respond = Respond(_OutNone)
   
   new iso create(server': Server) =>
     _server = server'
-    _parser = Parser({(_) => None })
+    _parser = CommandParser({(_) => None })
   
   fun ref _init(conn: _Conn ref) =>
     _resp = Respond(conn)
-    _parser = Parser({(proto_err)(resp = _resp) =>
+    _parser = CommandParser({(proto_err)(resp = _resp) =>
       resp.err(proto_err)
       conn.dispose()
     })
@@ -32,10 +32,5 @@ class iso ServerNotify is TCPConnectionNotify
   
   fun ref received(conn: _Conn ref, data: Array[U8] val, times: USize): Bool =>
     _parser.append(data)
-    while _parser.has_next() do
-      // TODO: remove `as`, refactor to `for` and fix the pony segfault.
-      try let cmd = _parser.next()? as ElementsAny
-        _server(cmd, _resp)
-      end
-    end
+    for cmd in _parser do _server(cmd, _resp) end
     true // TODO?

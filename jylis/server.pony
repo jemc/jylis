@@ -21,13 +21,13 @@ actor Server
   be _listen_ready() => None
     _log.info() and _log("listen ready")
   
-  be apply(cmd: ElementsAny, resp: Respond) =>
+  be apply(cmd: Array[String] val, resp: Respond) =>
     try
       match cmd(0)?
       | "TPUTS" =>
-        _repo.tputs(resp, cmd(1)? as String, cmd(2)? as String, (cmd(3)? as String).u64()?)
+        _repo.tputs(resp, cmd(1)?, cmd(2)?, cmd(3)?.u64()?)
       | "TGETS" =>
-        _repo.tgets(resp, cmd(1)? as String)
+        _repo.tgets(resp, cmd(1)?)
       else error
       end
     else
