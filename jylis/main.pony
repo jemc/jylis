@@ -1,8 +1,14 @@
+use "time"
+use "random"
 
 actor Main
   new create(env: Env) =>
     try
-      let log = Log.create_fine(env.out)
-      Server(env.root as AmbientAuth, log, "6379")
+      let auth    = env.root as AmbientAuth
+      let name    = NameGenerator(Rand(Time.now()._2.u64()))()
+      let log     = Log.create_fine(env.out)
+      let addr    = Address("0.0.0.0", "9999", name)
+      let cluster = Cluster(auth, log, addr, [])
+      let server  = Server(auth, log, cluster, "6379")
       env.out.print(Logo())
     end

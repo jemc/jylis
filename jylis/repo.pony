@@ -3,7 +3,10 @@ use "crdt"
 use "resp"
 
 class Repo
+  let _cluster: Cluster
   let _data_tputs: Map[String, LWWReg[String]] = _data_tputs.create()
+  
+  new create(cluster': Cluster) => _cluster = cluster'
   
   fun ref tputs(resp: Respond, key: String, value: String, timestamp: U64) =>
     try _data_tputs(key)?.update(value, timestamp)
