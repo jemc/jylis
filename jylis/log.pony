@@ -1,9 +1,5 @@
 use "logger"
-
-type _StringableAny is (Stringable | _StringableVal)
-
-interface box _StringableVal
-  fun string(): String
+use "inspect"
 
 class val Log
   let _log: Logger[String]
@@ -18,16 +14,16 @@ class val Log
   fun err(): Bool => _log(Error)
   
   fun apply(
-    a: _StringableAny,
-    b: _StringableAny = None,
-    c: _StringableAny = None,
-    d: _StringableAny = None)
+    a: Any box,
+    b: Any box = None,
+    c: Any box = None,
+    d: Any box = None)
     : Bool
   =>
     let out = recover trn String end
-    out.append(a.string())
-    if b isnt None then out.>push(';').>push(' ').append(b.string()) end
-    if c isnt None then out.>push(';').>push(' ').append(c.string()) end
-    if d isnt None then out.>push(';').>push(' ').append(d.string()) end
+    out.append(Inspect(a))
+    if b isnt None then out.>push(';').>push(' ').append(Inspect(b)) end
+    if c isnt None then out.>push(';').>push(' ').append(Inspect(c)) end
+    if d isnt None then out.>push(';').>push(' ').append(Inspect(d)) end
     _log.log(consume out)
     true

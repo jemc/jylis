@@ -2,11 +2,15 @@
   "deps": [
     {
       "type": "github",
-      "repo": "jemc/pony-resp"
+      "repo": "jemc/pony-crdt"
     },
     {
       "type": "github",
-      "repo": "jemc/pony-crdt"
+      "repo": "jemc/pony-inspect"
+    },
+    {
+      "type": "github",
+      "repo": "jemc/pony-resp"
     }
   ]
 }
