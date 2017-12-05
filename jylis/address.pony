@@ -20,7 +20,11 @@ class val Address is Equatable[Address val]
         (input, "", "")
       end
   
-  fun hash(): U64 => (0x2f * host.hash()) + (0x1f * port.hash()) + name.hash()
+  fun hash(): U64 =>
+    var h = host.hash()
+    h = h xor (port.hash() + 0x9d9eec79 + (h << 6) + (h >> 2))
+    h = h xor (name.hash() + 0x9d9eec79 + (h << 6) + (h >> 2))
+    h
   
   fun eq(that: Address): Bool =>
     (host == that.host) and (port == that.port) and (name == that.name)
