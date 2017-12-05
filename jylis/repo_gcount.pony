@@ -28,4 +28,4 @@ class RepoGCOUNT
     try _data(key)?.increment(value)
     else _data(key) = GCounter(_identity).>increment(value)
     end
-    resp.ok()
+    resp.ok() // Consider issuing an error when "node-local value" overflows? (remember to update docs)
