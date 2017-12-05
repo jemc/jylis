@@ -24,15 +24,9 @@ actor Server
   be _listen_ready() => None
     _log.info() and _log("listen ready")
   
-  be apply(cmd: Array[String] val, resp: Respond) =>
+  be apply(resp: Respond, cmd: Array[String] val) =>
     try
-      match cmd(0)?
-      | "TPUTS" =>
-        _repo.tputs(resp, cmd(1)?, cmd(2)?, cmd(3)?.u64()?)
-      | "TGETS" =>
-        _repo.tgets(resp, cmd(1)?)
-      else error
-      end
+      _repo(resp, cmd.values())?
     else
       _log.err() and _log("couldn't parse command", cmd)
       resp.err("BADCOMMAND couldn't parse command")

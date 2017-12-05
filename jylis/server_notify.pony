@@ -32,5 +32,5 @@ class iso ServerNotify is TCPConnectionNotify
   
   fun ref received(conn: _Conn ref, data: Array[U8] val, times: USize): Bool =>
     _parser.append(data)
-    for cmd in _parser do _server(cmd, _resp) end
+    for cmd in _parser do _server(_resp, cmd) end
     true // TODO?
