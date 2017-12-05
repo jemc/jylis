@@ -73,3 +73,7 @@ jylis> TREGS GET mykey
     - The value and the timestamp of the register can never be "cleared" back to a value of zero once the logical timestamp has been raised above zero, as the higher-timestamped value would always mask the zero-timestamped one.
 
     - If you're accepting end-user clock time as the logical timestamp, you should consider capping the maximum timestamp that the application allows to pass input validation to some point in the near future (allowing for some amount of clock drift). If you allow the end-user to provide a timestamp in the distant future, then they'll be unable to provide any values "in the present" until that distant future date is reached, likely leaving the register in a useless state.
+
+- Because the timestamp is an unsigned 64-bit integer, the maximum timestamp value that can be represented is limited.
+
+    - When designing a solution, care should be taken to choose a timestamp representation that will not increase beyond the maximum 64-bit unsigned value over the life of the application. For example, if your timestamp represents *microseconds* since the unix epoch, that representation will overflow in the year 2028, but if you choose *milliseconds* since the unix epoch, that representation will overflow in the year 584556019.
