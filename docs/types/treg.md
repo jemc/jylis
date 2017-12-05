@@ -56,13 +56,13 @@ jylis> TREGS GET mykey
 - Only a single value/timestamp pair is retained in the register at any time.
 
 - When comparing any two value/timestamp pairs `A` and `B`, the `A` pair takes precedence over the `B` pair if an only if:
-    - the timestamp for `A` is greater than that of `B`, ***or***
-    - the timestamps are the same, ***and***
+    - the timestamp for `A` is greater than that of `B`, ***OR***
+    - the timestamps are the same, ***AND***
         - the *value* for `A` is greater than that of `B` (by sorting rules).
 
 ## Caveats & Pitfalls
 
-- As with all eventually-consistent data types, you can't guarantee that the value read from any two nodes will be the same. Changes take time to propagate through the system, and your application should be written with the expectation of seeing inconsistent values. In general, you should assume that nothing is immediate, nothing is atomic, and nothing is ordered.
+- As with all eventually-consistent data types, you can't guarantee that the value read from any two nodes will be the same. Changes take time to propagate through the distributed system, and your application should be written with the expectation of seeing inconsistent values. In general, you should assume that nothing is immediate, nothing is atomic, and nothing is ordered.
 
 - Because conflict resolution of this data type is based solely on the logical timestamp, the semantics will only be as useful as the timestamps are.
 
