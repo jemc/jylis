@@ -2,17 +2,24 @@ use "resp"
 
 actor Server
   let _log: Log
+  let _addr: Address
   let _cluster: Cluster
   let _listen: _Listen
   let _repo: Repo
   
-  new create(auth': AmbientAuth, log': Log, cluster': Cluster, port': String) =>
-    (_log, _cluster) = (log', cluster')
+  new create(
+    auth': AmbientAuth,
+    log': Log,
+    addr': Address,
+    cluster': Cluster,
+    port': String)
+  =>
+    (_log, _addr, _cluster) = (log', addr', cluster')
     
     let listen_notify = ServerListenNotify(this)
     _listen = _Listen(auth', consume listen_notify, "", port')
     
-    _repo = Repo(_cluster)
+    _repo = Repo(_addr.hash(), _cluster)
   
   be dispose() =>
     _listen.dispose()
