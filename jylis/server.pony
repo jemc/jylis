@@ -3,7 +3,6 @@ use "resp"
 actor Server
   let _log: Log
   let _addr: Address
-  let _cluster: Cluster
   let _listen: _Listen
   let _repo: Repo
   
@@ -11,15 +10,14 @@ actor Server
     auth': AmbientAuth,
     log': Log,
     addr': Address,
-    cluster': Cluster,
     port': String)
   =>
-    (_log, _addr, _cluster) = (log', addr', cluster')
+    (_log, _addr) = (log', addr')
     
     let listen_notify = ServerListenNotify(this)
     _listen = _Listen(auth', consume listen_notify, "", port')
     
-    _repo = Repo(_addr.hash(), _cluster)
+    _repo = Repo(_addr.hash())
   
   be dispose() =>
     _listen.dispose()
@@ -38,3 +36,11 @@ actor Server
       _log.err() and _log("couldn't parse command", cmd)
       resp.err("BADCOMMAND couldn't parse command")
     end
+  
+  be flush_deltas(cluster: Cluster, serial: _Serialise) =>
+    _repo.flush_deltas(cluster, serial)
+  
+  be converge_deltas(
+    deltas: Array[(String, Array[(String, Any box)] box)] val)
+  =>
+    _repo.converge_deltas(deltas)

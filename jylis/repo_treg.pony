@@ -3,10 +3,13 @@ use "crdt"
 use "resp"
 
 class RepoTREG[A: (Comparable[A] val & (String val | I64 val))]
-  let _cluster: Cluster
-  let _data: Map[String, LWWReg[A]] = _data.create()
+  let _data:   Map[String, LWWReg[A]] = _data.create()
+  let _deltas: Map[String, LWWReg[A]] = _deltas.create()
   
-  new create(cluster': Cluster) => _cluster = cluster'
+  new ref create() => None
+  
+  fun deltas(): Map[String, LWWReg[A]] box => _deltas
+  fun ref clear_deltas() => _deltas.clear()
   
   fun ref apply(r: Respond, cmd: Iterator[String])? =>
     match cmd.next()?
@@ -34,6 +37,14 @@ class RepoTREG[A: (Comparable[A] val & (String val | I64 val))]
   
   fun tag _timestamp(cmd: Iterator[String]): U64? => cmd.next()?.u64()?
   
+  fun ref converge(key: String, delta': Any box) => // TODO: more strict
+    try
+      let delta = delta' as LWWReg[A] box
+      try _data(key)?.converge(delta)
+      else _data(key) = LWWReg[A](delta.value(), delta.timestamp()) // TODO: delta.clone()
+      end
+    end
+  
   fun get(resp: Respond, key: String) =>
     try
       let reg = _data(key)?
@@ -45,7 +56,15 @@ class RepoTREG[A: (Comparable[A] val & (String val | I64 val))]
     end
   
   fun ref set(resp: Respond, key: String, value: A, timestamp: U64) =>
-    try _data(key)?.update(value, timestamp)
+    let delta =
+      try _deltas(key)? else
+        let d = LWWReg[A](value, timestamp)
+        _deltas(key) = d
+        d
+      end
+    
+    try _data(key)?.update(value, timestamp, delta)
     else _data(key) = LWWReg[A](value, timestamp)
     end
+    
     resp.ok()

@@ -5,6 +5,7 @@ actor Cluster
   let _auth: AmbientAuth // TODO: de-escalate to NetAuth
   let _log: Log
   let _my_addr: Address
+  let _server: Server
   let _serial: _Serialise
   let _listen: _Listen
   let _heart: Heart                     = Heart(this, 10_000_000_000) // 10s
@@ -18,11 +19,13 @@ actor Cluster
     auth': AmbientAuth,
     log': Log,
     my_addr': Address,
-    known_addrs': Array[Address] val)
+    known_addrs': Array[Address] val,
+    server': Server)
   =>
     _auth = auth'
     _log = log'
     _my_addr = my_addr'
+    _server = server'
     _serial = _Serialise(auth')
     
     let listen_notify = ClusterListenNotify(this, _serial.signature())
@@ -108,6 +111,10 @@ actor Cluster
       end
     end
     
+    // On every tick, flush deltas to other nodes.
+    _server.flush_deltas(this, _serial)
+    
+    // On every tick, sync active connections.
     _sync_actives()
   
   be _listen_failed() =>
@@ -171,11 +178,21 @@ actor Cluster
       _active_error(conn, "invalid message on active connection")
     end
   
-  fun ref _send(conn: _Conn tag, msg: Msg) =>
+  fun ref _send(conn: _Conn tag, msg: Msg box) =>
     _log.fine() and _log("sending", msg)
     try conn.write(_serial.to_bytes(msg)?)
     else _log.err() and _log("failed to serialise message")
     end
+  
+  be _broadcast_bytes(data: Array[U8] val) =>
+    _log.fine() and _log("broadcasting data")
+    for conn in _actives.values() do conn.write(data) end
+  
+  fun tag broadcast_deltas(
+    serial: _Serialise,
+    deltas: Array[(String, Array[(String, Any box)] box)] box)
+  =>
+    try _broadcast_bytes(serial.to_bytes(MsgPushDeltas(deltas))?) end
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
     if _known_addrs.converge(received_addrs) then
@@ -195,6 +212,9 @@ actor Cluster
       _send(conn, MsgExchangeAddrs(_known_addrs))
     | let msg: MsgAnnounceAddrs =>
       _converge_addrs(msg.known_addrs)
+      _send(conn, MsgPong)
+    | let msg: MsgPushDeltas =>
+      _server.converge_deltas(msg.deltas)
       _send(conn, MsgPong)
     else
       _passive_error(conn, "unhandled message", msg'.string())
