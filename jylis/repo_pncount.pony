@@ -15,8 +15,8 @@ class RepoPNCOUNT
   fun ref apply(r: Respond, cmd: Iterator[String])? =>
     match cmd.next()?
     | "GET" => get(r, _key(cmd)?)
-    | "ADD" => add(r, _key(cmd)?, _value(cmd)?)
-    | "SUB" => sub(r, _key(cmd)?, _value(cmd)?)
+    | "INC" => add(r, _key(cmd)?, _value(cmd)?)
+    | "DEC" => sub(r, _key(cmd)?, _value(cmd)?)
     else error
     end
   

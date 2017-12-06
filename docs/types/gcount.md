@@ -2,7 +2,7 @@
 
 A grow-only counter holds an integer value that can only be increased.
 
-Every `ADD` operation increases the value associated with the node that processed the operation, and the value associated with each node is tracked separately. A `GET` operation will return the sum of all such values to determine the total increase for that counter across all nodes. As nodes share information and their view of the others' values is updated, they will eventually converge to the same total value.
+Every `INC` operation increases the value associated with the node that processed the operation, and the value associated with each node is tracked separately. A `GET` operation will return the sum of all such values to determine the total increase for that counter across all nodes. As nodes share information and their view of the others' values is updated, they will eventually converge to the same total value.
 
 The value of the counter is a 64-bit unsigned integer.
 
@@ -14,7 +14,7 @@ Get the resulting `value` for the counter at `key`.
 
 Returns a 64-bit unsigned integer, which will be `0` if this counter has never been increased.
 
-### `ADD key value`
+### `INC key value`
 
 Increase the counter at `key` by the amount of `value`.
 
@@ -25,11 +25,11 @@ Returns a simple string reply of `OK`.
 ```sh
 jylis> GCOUNT GET mykey
 (integer) 0
-jylis> GCOUNT ADD mykey 10
+jylis> GCOUNT INC mykey 10
 OK
 jylis> GCOUNT GET mykey
 (integer) 10
-jylis> GCOUNT ADD mykey 15
+jylis> GCOUNT INC mykey 15
 OK
 jylis> GCOUNT GET mykey
 (integer) 25
