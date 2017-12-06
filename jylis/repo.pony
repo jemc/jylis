@@ -5,17 +5,20 @@ class Repo
   let _tregs:   RepoTREG[String]
   let _tregi:   RepoTREG[I64]
   let _gcount:  RepoGCOUNT
+  let _pncount: RepoPNCOUNT
   
   new create(identity': U64) =>
-    _tregs  = RepoTREG[String]
-    _tregi  = RepoTREG[I64]
-    _gcount = RepoGCOUNT(identity')
+    _tregs   = RepoTREG[String]
+    _tregi   = RepoTREG[I64]
+    _gcount  = RepoGCOUNT(identity')
+    _pncount = RepoPNCOUNT(identity')
   
   fun ref apply(resp: Respond, cmd: Iterator[String])? =>
     match cmd.next()?
-    | "TREGS"  => _tregs(resp, cmd)?
-    | "TREGI"  => _tregi(resp, cmd)?
-    | "GCOUNT" => _gcount(resp, cmd)?
+    | "TREGS"   => _tregs(resp, cmd)?
+    | "TREGI"   => _tregi(resp, cmd)?
+    | "GCOUNT"  => _gcount(resp, cmd)?
+    | "PNCOUNT" => _pncount(resp, cmd)?
     else error
     end
     if cmd.has_next() then error end
@@ -48,6 +51,14 @@ class Repo
       out.push(("GCOUNT", out'))
     end
     
+    deltas_size = _pncount.deltas().size()
+    if deltas_size > 0 then
+      let out' = Array[(String, Any box)](deltas_size)
+      for (k, d) in _pncount.deltas().pairs() do out'.push((k, d)) end
+      _pncount.clear_deltas()
+      out.push(("PNCOUNT", out'))
+    end
+    
     if out.size() > 0 then
       cluster.broadcast_deltas(serial, out)
     end
@@ -57,8 +68,9 @@ class Repo
   =>
     for (t, list) in deltas.values() do
       match t
-      | "TREGS"  => for (k, d) in list.values() do _tregs.converge(k, d) end
-      | "TREGI"  => for (k, d) in list.values() do _tregi.converge(k, d) end
-      | "GCOUNT" => for (k, d) in list.values() do _gcount.converge(k, d) end
+      | "TREGS"   => for (k, d) in list.values() do _tregs.converge(k, d) end
+      | "TREGI"   => for (k, d) in list.values() do _tregi.converge(k, d) end
+      | "GCOUNT"  => for (k, d) in list.values() do _gcount.converge(k, d) end
+      | "PNCOUNT" => for (k, d) in list.values() do _pncount.converge(k, d) end
       end
     end
