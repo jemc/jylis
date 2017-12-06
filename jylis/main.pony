@@ -1,14 +1,12 @@
-use "time"
-use "random"
-
 actor Main
   new create(env: Env) =>
     try
       let auth    = env.root as AmbientAuth
-      let name    = NameGenerator(Rand(Time.now()._2.u64()))()
       let log     = Log.create_fine(env.out)
-      let addr    = Address("0.0.0.0", "9999", name)
-      let cluster = Cluster(auth, log, addr, [])
-      let server  = Server(auth, log, addr, cluster, "6379")
+      let config  = Config(env)?
+      let cluster = Cluster(auth, log, config.addr, config.seed_addrs)
+      let server  = Server(auth, log, config.addr, cluster, config.port)
       env.out.print(Logo())
+      env.out.print("advertises cluster address: " + config.addr.string())
+      env.out.print("serves commands on port:    " + config.port)
     end
