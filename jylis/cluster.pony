@@ -8,7 +8,7 @@ actor Cluster
   let _server: Server
   let _serial: _Serialise
   let _listen: _Listen
-  let _heart: Heart                     = Heart(this, 10_000_000_000) // 10s
+  let _heart: Heart
   var _tick: U64                        = 0
   let _known_addrs: P2Set[Address]      = _known_addrs.create()
   let _passives: SetIs[_Conn]           = _passives.create()
@@ -20,7 +20,8 @@ actor Cluster
     log': Log,
     my_addr': Address,
     known_addrs': Array[Address] val,
-    server': Server)
+    server': Server,
+    heart_rate': U64 = 10_000_000_000) // 10s
   =>
     _auth = auth'
     _log = log'
@@ -30,6 +31,8 @@ actor Cluster
     
     let listen_notify = ClusterListenNotify(this, _serial.signature())
     _listen = _Listen(auth', consume listen_notify, "", my_addr'.port)
+    
+    _heart = Heart(this, heart_rate')
     
     _known_addrs.set(my_addr')
     _known_addrs.union(known_addrs'.values())
@@ -116,6 +119,9 @@ actor Cluster
     
     // On every tick, sync active connections.
     _sync_actives()
+  
+  be flush_deltas() =>
+    _server.flush_deltas(this, _serial)
   
   be _listen_failed() =>
     _log.err() and _log("listen failed")
