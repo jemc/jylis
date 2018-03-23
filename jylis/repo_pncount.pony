@@ -33,7 +33,7 @@ class RepoPNCOUNT
     end
   
   fun get(resp: Respond, key: String) =>
-    resp.i64(try _data(key)?.value() else 0 end)
+    resp.i64(try _data(key)?.value().i64() else 0 end)
   
   fun ref add(resp: Respond, key: String, value: I64) =>
     let delta =
@@ -43,8 +43,8 @@ class RepoPNCOUNT
         d
       end
     
-    try _data(key)?.increment(value, delta)
-    else _data(key) = PNCounter(_identity).>increment(value, delta)
+    try _data(key)?.increment(value.u64(), delta)
+    else _data(key) = PNCounter(_identity).>increment(value.u64(), delta)
     end
     
     resp.ok() // Consider issuing an error when "node-local value" overflows? (remember to update docs)
@@ -57,8 +57,8 @@ class RepoPNCOUNT
         d
       end
     
-    try _data(key)?.decrement(value, delta)
-    else _data(key) = PNCounter(_identity).>decrement(value, delta)
+    try _data(key)?.decrement(value.u64(), delta)
+    else _data(key) = PNCounter(_identity).>decrement(value.u64(), delta)
     end
     
     resp.ok() // Consider issuing an error when "node-local value" underflows? (remember to update docs)
