@@ -9,8 +9,12 @@ class RepoGCOUNT
   
   new create(identity': U64) => _identity = identity'
   
-  fun deltas(): Map[String, GCounter] box => _deltas
-  fun ref clear_deltas() => _deltas.clear()
+  fun ref deltas_size(): USize => _deltas.size()
+  fun ref flush_deltas(): Array[(String, Any box)] box =>
+    let out = Array[(String, Any box)](_deltas.size())
+    for (k, d) in _deltas.pairs() do out.push((k, d)) end
+    _deltas.clear()
+    out
   
   fun ref apply(r: Respond, cmd: Iterator[String])? =>
     match cmd.next()?
