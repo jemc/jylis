@@ -68,7 +68,8 @@ class TestCluster is UnitTest
   fun name(): String => "jylis.Cluster"
   
   fun apply(h: TestHelper)? =>
-    h.long_test(1_000_000_000)
+    let tick = 50_000_000 // 50ms
+    h.long_test(10 * tick)
     
     let auth = h.env.root as AmbientAuth
     let log  = Log.create_err(h.env.out)
@@ -85,20 +86,20 @@ class TestCluster is UnitTest
     h.dispose_when_done(bar_s)
     h.dispose_when_done(baz_s)
     
-    let foo_c = Cluster(auth, log, foo, [], foo_s, 50_000_000)
-    let bar_c = Cluster(auth, log, bar, [foo], bar_s, 50_000_000)
-    let baz_c = Cluster(auth, log, baz, [foo], baz_s, 50_000_000)
+    let foo_c = Cluster(auth, log, foo, [], foo_s, tick)
+    let bar_c = Cluster(auth, log, bar, [foo], bar_s, tick)
+    let baz_c = Cluster(auth, log, baz, [foo], baz_s, tick)
     
     h.dispose_when_done(foo_c)
     h.dispose_when_done(bar_c)
     h.dispose_when_done(baz_c)
     
-    _Wait(h, 150_000_000, {(h)(foo_s, bar_s, baz_s) =>
+    _Wait(h, 3 * tick, {(h)(foo_s, bar_s, baz_s) =>
       foo_s(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "2"])
       bar_s(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "3"])
       baz_s(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "4"])
       
-      _Wait(h, 100_000_000, {(h) =>
+      _Wait(h, 2 * tick, {(h) =>
         foo_s(_ExpectRespond(h, ":9\r\n"), ["GCOUNT"; "GET"; "foo"])
       })
     })
