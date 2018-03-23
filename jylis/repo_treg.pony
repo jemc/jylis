@@ -3,12 +3,12 @@ use "crdt"
 use "resp"
 
 class RepoTREG[A: (Comparable[A] val & (String val | I64 val))]
-  let _data:   Map[String, LWWReg[A]] = _data.create()
-  let _deltas: Map[String, LWWReg[A]] = _deltas.create()
+  let _data:   Map[String, TReg[A]] = _data.create()
+  let _deltas: Map[String, TReg[A]] = _deltas.create()
   
   new ref create() => None
   
-  fun deltas(): Map[String, LWWReg[A]] box => _deltas
+  fun deltas(): Map[String, TReg[A]] box => _deltas
   fun ref clear_deltas() => _deltas.clear()
   
   fun ref apply(r: Respond, cmd: Iterator[String])? =>
@@ -39,9 +39,9 @@ class RepoTREG[A: (Comparable[A] val & (String val | I64 val))]
   
   fun ref converge(key: String, delta': Any box) => // TODO: more strict
     try
-      let delta = delta' as LWWReg[A] box
+      let delta = delta' as TReg[A] box
       try _data(key)?.converge(delta)
-      else _data(key) = LWWReg[A](delta.value(), delta.timestamp()) // TODO: delta.clone()
+      else _data(key) = TReg[A](delta.value(), delta.timestamp()) // TODO: delta.clone()
       end
     end
   
@@ -58,13 +58,13 @@ class RepoTREG[A: (Comparable[A] val & (String val | I64 val))]
   fun ref set(resp: Respond, key: String, value: A, timestamp: U64) =>
     let delta =
       try _deltas(key)? else
-        let d = LWWReg[A](value, timestamp)
+        let d = TReg[A](value, timestamp)
         _deltas(key) = d
         d
       end
     
     try _data(key)?.update(value, timestamp, delta)
-    else _data(key) = LWWReg[A](value, timestamp)
+    else _data(key) = TReg[A](value, timestamp)
     end
     
     resp.ok()
