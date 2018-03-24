@@ -68,7 +68,7 @@ class TestCluster is UnitTest
   fun name(): String => "jylis.Cluster"
   
   fun apply(h: TestHelper)? =>
-    let tick = 50_000_000 // 50ms
+    let tick: U64 = 50_000_000 // 50ms
     h.long_test(10 * tick)
     
     let auth = h.env.root as AmbientAuth
