@@ -19,6 +19,7 @@ class Repo
     _map("TREG")    = RepoTREG
     _map("GCOUNT")  = RepoGCOUNT(identity')
     _map("PNCOUNT") = RepoPNCOUNT(identity')
+    _map("UJSON")   = RepoUJSON(identity')
   
   fun ref apply(resp: Respond, cmd: Iterator[String])? =>
     _map(cmd.next()?)?(resp, cmd)?
