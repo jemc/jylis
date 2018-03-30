@@ -100,12 +100,12 @@ In cases where removal of a value at a particular key path happens concurrently 
 ## Examples
 
 ```sh
-jylis> UJSON SET users:my-user '{"created_at":1514793601,"contact":{"email":"demo-user@example.com"}}'
+jylis> UJSON SET users:my-user '{"created_at":1514793601,"contact":{"email":"my-user@example.com"}}'
 OK
 jylis> UJSON GET users:my-user created_at
 1514793601
 jylis> UJSON GET users:my-user contact
-'{"email":"demo-user@example.com"}'
+'{"email":"my-user@example.com"}'
 jylis> UJSON INS users:my-user roles '"user"'
 OK
 jylis> UJSON INS users:my-user roles '"vendor"'
