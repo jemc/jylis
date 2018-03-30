@@ -119,7 +119,7 @@ OK
 jylis> UJSON SET users:my-user contact email '"new-email@example.com"'
 OK
 jylis> UJSON GET users:my-user
-'{"roles":["vendor","user"],"created_at":1514793601,"contact":{"email":"new-email@example.com"}}'
+'{"roles":["admin","user"],"created_at":1514793601,"contact":{"email":"new-email@example.com"}}'
 jylis> UJSON CLR users:my-user
 OK
 jylis> UJSON GET users:my-user
@@ -138,7 +138,7 @@ UJSON is very similar to JSON, but it has some important deviations that should 
 #### The world is flat.
 
 - A UJSON node tracks only terminal values ("leaves" of the tree).
-- Rather than modeling the data as a nested maps and sets, UJSON sees a flat set of primitive values (strings, numbers, booleans, `null`s) and the key path of each.
+- Rather than modeling the data as nested maps and sets, UJSON sees a flat set of primitive values (strings, numbers, booleans, `null`s) and the key path of each.
 
 #### To be empty is to perish.
 
