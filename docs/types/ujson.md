@@ -111,7 +111,7 @@ OK
 jylis> UJSON INS users:my-user roles '"vendor"'
 OK
 jylis> UJSON GET users:my-user roles
-["vendor","user"]
+'["vendor","user"]'
 jylis> UJSON INS users:my-user roles '"admin"'
 OK
 jylis> UJSON RM users:my-user roles '"vendor"'
@@ -123,7 +123,7 @@ jylis> UJSON GET users:my-user
 jylis> UJSON CLR users:my-user
 OK
 jylis> UJSON GET users:my-user
-
+''
 ```
 
 ## UJSON Primer
