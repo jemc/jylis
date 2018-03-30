@@ -1,15 +1,10 @@
-# `TREGx` - Timestamped Register (Latest Write Wins)
+# `TREG` - Timestamped Register (Latest Write Wins)
 
 A timestamped register holds a single value and a logical timestamp associated with it.
 
 Every `SET` operation provides a new logical timestamp alongside the new value to be set in the register. If the new timestamp higher than the old timestamp, the write is respected; otherwise, it is discarded. Thus, every `GET` operation will return the value with the highest timestamp that has been seen by that node, and as nodes share information, they will eventually converge to the same "latest" value and timestamp.
 
 The logical timestamp is a 64-bit unsigned integer. It may be used to represent anything appropriate to the application; perhaps milliseconds since the unix epoch, or perhaps a sequence number.
-
-The following variants of this data type are available:
-
-- `TREGS` - timestamped register with a string value.
-- `TREGI` - timestamped register with a signed 64-bit integer value.
 
 ## Functions
 
@@ -20,6 +15,8 @@ Get the latest `value` and `timestamp` for the register at `key`.
 The value/timestamp pair currently held in the register will be returned to the caller. This will always be the pair with the latest timestamp that has been seen by the node answering this query.
 
 Returns a two-element array with the current value and the logical timestamp, or `nil` if this register has not yet seen a value/timestamp written to it.
+
+The value will be returned as a string, and the timestamp as an integer.
 
 ### `SET key value timestamp`
 
@@ -32,21 +29,21 @@ Returns a simple string reply of `OK`, regardless of whether the update was igno
 ## Examples
 
 ```sh
-jylis> TREGS GET mykey
+jylis> TREG GET mykey
 (nil)
-jylis> TREGS SET mykey "hello" 10
+jylis> TREG SET mykey "hello" 10
 OK
-jylis> TREGS GET mykey
+jylis> TREG GET mykey
 1) "hello"
 2) (integer) 10
-jylis> TREGS SET mykey "world" 15
+jylis> TREG SET mykey "world" 15
 OK
-jylis> TREGS GET mykey
+jylis> TREG GET mykey
 1) "world"
 2) (integer) 15
-jylis> TREGS SET mykey "outdated" 5
+jylis> TREG SET mykey "outdated" 5
 OK
-jylis> TREGS GET mykey
+jylis> TREG GET mykey
 1) "world"
 2) (integer) 15
 ```

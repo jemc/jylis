@@ -16,8 +16,7 @@ class Repo
     // noting that allowing this requires a CRDT data structure for this map
     // of repos, with some way of resolving conflicts that doesn't break things
     // for the user who has already started storing data in the repo?
-    _map("TREGS")   = RepoTREG[String]
-    _map("TREGI")   = RepoTREG[I64]
+    _map("TREG")    = RepoTREG
     _map("GCOUNT")  = RepoGCOUNT(identity')
     _map("PNCOUNT") = RepoPNCOUNT(identity')
   
