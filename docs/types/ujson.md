@@ -120,6 +120,10 @@ jylis> UJSON SET users:my-user contact email '"new-email@example.com"'
 OK
 jylis> UJSON GET users:my-user
 '{"roles":["vendor","user"],"created_at":1514793601,"contact":{"email":"new-email@example.com"}}'
+jylis> UJSON CLR users:my-user
+OK
+jylis> UJSON GET users:my-user
+
 ```
 
 ## UJSON Primer
