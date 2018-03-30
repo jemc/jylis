@@ -5,7 +5,7 @@ A UJSON node holds arbitrarily nested collections of unordered values, represent
 A UJSON map is an unordered data structure represented with JSON object syntax, mapping each key to a value, a set, or a nested map.
 
 ```json
-{ "fruit": "apple", "properties": { "color": "red", "edible": true }] }]
+{ "fruit": "apple", "properties": { "color": "red", "edible": true } }
 ```
 
 A UJSON set is an unordered data structure represented with JSON array syntax, containing elements where each is a value or a nested map.
