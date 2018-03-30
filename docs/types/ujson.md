@@ -99,37 +99,28 @@ In cases where removal of a value at a particular key path happens concurrently 
 
 ## Examples
 
-```json
-{
-  "username": "demo-user",
-  "created_at": 1514793601,
-  "banned": false,
-  "contact_info": {
-    "email": "demo-user@example.com",
-  }
-}
-```
-
 ```sh
-jylis> TREG GET mykey
-(nil)
-jylis> TREG SET mykey "hello" 10
+jylis> UJSON SET users:my-user '{"created_at":1514793601,"contact":{"email":"demo-user@example.com"}}'
 OK
-jylis> TREG GET mykey
-1) "hello"
-2) (integer) 10
-jylis> TREG SET mykey "world" 15
+jylis> UJSON GET users:my-user created_at
+1514793601
+jylis> UJSON GET users:my-user contact
+'{"email":"demo-user@example.com"}'
+jylis> UJSON INS users:my-user roles '"user"'
 OK
-jylis> TREG GET mykey
-1) "world"
-2) (integer) 15
-jylis> TREG SET mykey "outdated" 5
+jylis> UJSON INS users:my-user roles '"vendor"'
 OK
-jylis> TREG GET mykey
-1) "world"
-2) (integer) 15
+jylis> UJSON GET users:my-user roles
+["vendor","user"]
+jylis> UJSON INS users:my-user roles '"admin"'
+OK
+jylis> UJSON RM users:my-user roles '"vendor"'
+OK
+jylis> UJSON SET users:my-user contact email '"new-email@example.com"'
+OK
+jylis> UJSON GET users:my-user
+'{"roles":["vendor","user"],"created_at":1514793601,"contact":{"email":"new-email@example.com"}}'
 ```
-
 
 ## UJSON Primer
 
