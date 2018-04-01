@@ -1,6 +1,23 @@
-use crdt = "crdt"
-use "resp"
 use "collections"
+use "resp"
+
+primitive RepoHelp
+  fun apply(cmd: Iterator[String]): String =>
+    match (try cmd.next()? else "" end)
+    | "TREG"    => RepoTREGHelp(cmd)
+    | "GCOUNT"  => RepoGCOUNTHelp(cmd)
+    | "PNCOUNT" => RepoPNCOUNTHelp(cmd)
+    | "UJSON"   => RepoUJSONHelp(cmd)
+    else
+      """
+      The first word of each command must be a data type.
+      The following are valid data types (case sensitive):
+        TREG    - Timestamped Register (Latest Write Wins)
+        GCOUNT  - Grow-Only Counter
+        PNCOUNT - Positive/Negative Counter
+        UJSON   - Unordered JSON (Nested Observed-Remove Maps and Sets)
+      """
+    end
 
 interface RepoAny
   fun ref apply(r: Respond, cmd: Iterator[String])?

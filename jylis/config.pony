@@ -1,4 +1,4 @@
-use "cli"
+use cli = "cli"
 use "random"
 use "time"
 
@@ -8,30 +8,30 @@ class Config
   let seed_addrs: Array[Address] = []
   
   new val create(env: Env) ? =>
-    let spec = CommandSpec.leaf("jylis", "", [
-      OptionSpec.string("port",
+    let spec = cli.CommandSpec.leaf("jylis", "", [
+      cli.OptionSpec.string("port",
         "The port for accepting commands over RESP-protocol connections."
         where short' = 'p', default' = "6379")
       
-      OptionSpec.string("addr",
+      cli.OptionSpec.string("addr",
         "The host:port:name to be advertised to other clustering nodes."
         where short' = 'a', default' = "127.0.0.1:9999:")
       
-      OptionSpec.string("seed-addrs",
+      cli.OptionSpec.string("seed-addrs",
         "A space-separated list of the host:port:name for other known nodes."
         where short' = 's', default' = "")
     ], [
-      ArgSpec.string_seq("", "")
+      cli.ArgSpec.string_seq("", "")
     ])?.>add_help()?
     
     let cmd =
-      match CommandParser(spec).parse(env.args, env.vars())
-      | let c: Command => c
-      | let c: CommandHelp =>
+      match cli.CommandParser(spec).parse(env.args, env.vars())
+      | let c: cli.Command => c
+      | let c: cli.CommandHelp =>
         c.print_help(env.out)
         env.exitcode(0)
         error
-      | let err: SyntaxError =>
+      | let err: cli.SyntaxError =>
         env.out.print(err.string())
         env.exitcode(1)
         error

@@ -33,8 +33,8 @@ actor Server
     try
       _repo(resp, cmd.values())?
     else
-      _log.err() and _log("couldn't parse command", cmd)
-      resp.err("BADCOMMAND couldn't parse command")
+      _log.fine() and _log("couldn't parse command", cmd)
+      HelpResponder(resp, cmd)
     end
   
   be flush_deltas(cluster: Cluster, serial: _Serialise) =>

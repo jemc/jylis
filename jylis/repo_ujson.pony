@@ -2,6 +2,15 @@ use "collections"
 use "crdt"
 use "resp"
 
+primitive RepoUJSONHelp is HelpLeaf
+  fun datatype(): String => "UJSON"
+  fun commands(map: Map[String, String]) =>
+    map("GET") = "key [key...]"
+    map("SET") = "key [key...] ujson"
+    map("CLR") = "key [key...]"
+    map("INS") = "key [key...] value"
+    map("RM")  = "key [key...] value"
+
 class RepoUJSON
   let _identity: U64
   let _data:   Map[String, UJSON] = _data.create()

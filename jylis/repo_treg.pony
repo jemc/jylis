@@ -2,6 +2,12 @@ use "collections"
 use "crdt"
 use "resp"
 
+primitive RepoTREGHelp is HelpLeaf
+  fun datatype(): String => "TREG"
+  fun commands(map: Map[String, String]) =>
+    map("GET") = "key"
+    map("SET") = "key value timestamp"
+
 class RepoTREG
   let _data:   Map[String, TReg[String]] = _data.create()
   let _deltas: Map[String, TReg[String]] = _deltas.create()

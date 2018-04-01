@@ -2,6 +2,13 @@ use "collections"
 use "crdt"
 use "resp"
 
+primitive RepoPNCOUNTHelp is HelpLeaf
+  fun datatype(): String => "PNCOUNT"
+  fun commands(map: Map[String, String]) =>
+    map("GET") = "key"
+    map("INC") = "key value"
+    map("DEC") = "key value"
+
 class RepoPNCOUNT
   let _identity: U64
   let _data:   Map[String, PNCounter] = _data.create()

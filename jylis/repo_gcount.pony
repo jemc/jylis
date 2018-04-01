@@ -2,6 +2,12 @@ use "collections"
 use "crdt"
 use "resp"
 
+primitive RepoGCOUNTHelp is HelpLeaf
+  fun datatype(): String => "GCOUNT"
+  fun commands(map: Map[String, String]) =>
+    map("GET") = "key"
+    map("INC") = "key value"
+
 class RepoGCOUNT
   let _identity: U64
   let _data:   Map[String, GCounter] = _data.create()
