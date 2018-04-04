@@ -15,6 +15,7 @@ interface tag RepoManagerAny
 actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
   let _name: String
   let _repo: R
+  var _deltas_fn: (_SendDeltasFn | None) = None
   
   new create(name': String, identity': U64) =>
     (_name, _repo) = (name', R(identity'))
@@ -31,6 +32,7 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
     end
   
   be flush_deltas(fn: _SendDeltasFn) =>
+    _deltas_fn = fn
     if _repo.deltas_size() > 0 then
       fn((_name, _repo.flush_deltas()))
     end
