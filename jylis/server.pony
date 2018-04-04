@@ -4,7 +4,7 @@ actor Server
   let _log: Log
   let _addr: Address
   let _listen: _Listen
-  let _repo: Repo
+  let _repo: RepoMap
   
   new create(
     auth': AmbientAuth,
@@ -17,7 +17,7 @@ actor Server
     let listen_notify = ServerListenNotify(this)
     _listen = _Listen(auth', consume listen_notify, "", port')
     
-    _repo = Repo(_addr.hash())
+    _repo = RepoMap(_addr.hash())
   
   be dispose() =>
     _listen.dispose()
