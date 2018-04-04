@@ -9,13 +9,15 @@ interface RepoAny
 
 interface tag RepoManagerAny
   be apply(resp: Respond, cmd: Array[String] val)
-  be flush_deltas(name: String, cluster: Cluster, serial: _Serialise)
+  be flush_deltas(fn: _SendDeltasFn)
   be converge_deltas(deltas: Array[(String, Any box)] val)
 
 actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
+  let _name: String
   let _repo: R
   
-  new create(identity': U64) => _repo = R(identity')
+  new create(name': String, identity': U64) =>
+    (_name, _repo) = (name', R(identity'))
   
   be apply(resp: Respond, cmd: Array[String] val) =>
     try
@@ -28,9 +30,9 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
       HelpRespond(resp, H(iter))
     end
   
-  be flush_deltas(name: String, cluster: Cluster, serial: _Serialise) =>
+  be flush_deltas(fn: _SendDeltasFn) =>
     if _repo.deltas_size() > 0 then
-      cluster.broadcast_deltas(serial, (name, _repo.flush_deltas()))
+      fn((_name, _repo.flush_deltas()))
     end
   
   be converge_deltas(deltas: Array[(String, Any box)] val) =>

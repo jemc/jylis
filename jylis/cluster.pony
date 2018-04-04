@@ -9,6 +9,7 @@ actor Cluster
   let _serial: _Serialise
   let _listen: _Listen
   let _heart: Heart
+  let _deltas_fn: _SendDeltasFn
   var _tick: U64                        = 0
   let _known_addrs: P2Set[Address]      = _known_addrs.create()
   let _passives: SetIs[_Conn]           = _passives.create()
@@ -33,6 +34,7 @@ actor Cluster
     _listen = _Listen(auth', consume listen_notify, "", my_addr'.port)
     
     _heart = Heart(this, heart_rate')
+    _deltas_fn = this~broadcast_deltas(_serial)
     
     _known_addrs.set(my_addr')
     _known_addrs.union(known_addrs'.values())
@@ -115,13 +117,10 @@ actor Cluster
     end
     
     // On every tick, flush deltas to other nodes.
-    _database.flush_deltas(this, _serial)
+    _database.flush_deltas(_deltas_fn)
     
     // On every tick, sync active connections.
     _sync_actives()
-  
-  be flush_deltas() =>
-    _database.flush_deltas(this, _serial)
   
   be _listen_failed() =>
     _log.err() and _log("listen failed")

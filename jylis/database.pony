@@ -9,10 +9,10 @@ class val Database
     // noting that allowing this requires a CRDT data structure for this map
     // of repos, with some way of resolving conflicts that doesn't break things
     // for the user who has already started storing data in the repo?
-    _map("TREG")    = RepoManager[RepoTREG,    RepoTREGHelp]   (identity')
-    _map("GCOUNT")  = RepoManager[RepoGCOUNT,  RepoGCOUNTHelp] (identity')
-    _map("PNCOUNT") = RepoManager[RepoPNCOUNT, RepoPNCOUNTHelp](identity')
-    _map("UJSON")   = RepoManager[RepoUJSON,   RepoUJSONHelp]  (identity')
+    _map("TREG")    = RepoManager[RepoTREG,    RepoTREGHelp]   ("TREG",    identity')
+    _map("GCOUNT")  = RepoManager[RepoGCOUNT,  RepoGCOUNTHelp] ("GCOUNT",  identity')
+    _map("PNCOUNT") = RepoManager[RepoPNCOUNT, RepoPNCOUNTHelp]("PNCOUNT", identity')
+    _map("UJSON")   = RepoManager[RepoUJSON,   RepoUJSONHelp]  ("UJSON",   identity')
   
   fun apply(resp: Respond, cmd: Array[String] val) =>
     try
@@ -29,12 +29,12 @@ class val Database
         """)
     end
   
-  fun flush_deltas(cluster: Cluster, serial: _Serialise) =>
+  fun flush_deltas(fn: _SendDeltasFn) =>
     let out: Array[(String, Array[(String, Any box)] box)] = []
     var deltas_size: USize = 0
     
     for (name, repo) in _map.pairs() do
-      repo.flush_deltas(name, cluster, serial)
+      repo.flush_deltas(fn)
     end
   
   fun converge_deltas(deltas: (String, Array[(String, Any box)] val)) =>
