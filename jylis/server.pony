@@ -1,10 +1,8 @@
-use "resp"
-
 actor Server
   let _log: Log
   let _addr: Address
-  let _listen: _Listen
   let _database: Database
+  let _listen: _Listen
   
   new create(
     auth': AmbientAuth,
