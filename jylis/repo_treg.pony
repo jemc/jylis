@@ -21,14 +21,16 @@ class RepoTREG
     _deltas.clear()
     out
   
-  fun ref apply(r: Respond, cmd: Iterator[String])? =>
+  fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?
     | "GET" => get(r, _key(cmd)?)
-    | "SET" => set(r, _key(cmd)?, cmd.next()?, _timestamp(cmd)?)
+    | "SET" => set(r, _key(cmd)?, _value(cmd)?, _timestamp(cmd)?)
     else error
     end
   
   fun tag _key(cmd: Iterator[String]): String? => cmd.next()?
+  
+  fun tag _value(cmd: Iterator[String]): String? => cmd.next()?
   
   fun tag _timestamp(cmd: Iterator[String]): U64? => cmd.next()?.u64()?
   
@@ -40,7 +42,7 @@ class RepoTREG
       end
     end
   
-  fun get(resp: Respond, key: String) =>
+  fun get(resp: Respond, key: String): Bool =>
     try
       let reg = _data(key)?
       resp.array_start(2)
@@ -49,8 +51,9 @@ class RepoTREG
     else
       resp.null()
     end
+    false
   
-  fun ref set(resp: Respond, key: String, value: String, timestamp: U64) =>
+  fun ref set(resp: Respond, key: String, value: String, timestamp: U64): Bool =>
     let delta =
       try _deltas(key)? else
         let d = TReg[String](value, timestamp)
@@ -63,3 +66,5 @@ class RepoTREG
     end
     
     resp.ok()
+    
+    true // TODO: update CRDT library so we can return false if nothing changed

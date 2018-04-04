@@ -2,7 +2,7 @@ use "resp"
 
 interface RepoAny
   new ref create(identity': U64)
-  fun ref apply(r: Respond, cmd: Iterator[String])?
+  fun ref apply(r: Respond, cmd: Iterator[String]): Bool?
   fun ref deltas_size(): USize
   fun ref flush_deltas(): Array[(String, Any box)] box
   fun ref converge(key: String, delta': Any box)

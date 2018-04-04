@@ -25,7 +25,7 @@ class RepoUJSON
     _deltas.clear()
     out
   
-  fun ref apply(r: Respond, cmd: Iterator[String])? =>
+  fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?
     | "GET" => get(r, _key(cmd)?, _rest(cmd))
     | "SET" => set(r, _key(cmd)?, _rest_but_last(cmd)?)?
@@ -48,79 +48,63 @@ class RepoUJSON
     let last = out.pop()?
     (consume out, last)
   
-  fun ref converge(key: String, delta': Any box) => // TODO: more strict
-    try
-      let delta = delta' as UJSON box
-      try _data(key)?.converge(delta)
-      else _data(key) = UJSON(_identity).>converge(delta)
-      end
+  fun ref _data_for(key: String): UJSON =>
+    try _data(key)? else
+      let d = UJSON(_identity)
+      _data(key) = d
+      d
     end
   
-  fun get(resp: Respond, key: String, path: Array[String] val) =>
+  fun ref _delta_for(key: String): UJSON =>
+    try _deltas(key)? else
+      let d = UJSON(_identity)
+      _deltas(key) = d
+      d
+    end
+  
+  fun ref converge(key: String, delta': Any box) => // TODO: more strict
+    try _data_for(key).converge(delta' as UJSON box) end
+  
+  fun get(resp: Respond, key: String, path: Array[String] val): Bool =>
     try resp.string(_data(key)?.get(path).string())
     else resp.string("")
     end
+    false
   
   fun ref set(
     resp: Respond,
     key: String,
     pathvalue: (Array[String] val, String))
-  ? =>
-    let delta =
-      try _deltas(key)? else
-        let d = UJSON(_identity)
-        _deltas(key) = d
-        d
-      end
-    
+  : Bool? =>
     (let path, let value) = pathvalue
     let node = UJSONParse.node(value)?
-    try _data(key)?.put(path, node, delta)
-    else _data(key) = UJSON(_identity).>put(path, node, delta)
-    end
-    
+    _data_for(key).put(path, node, _delta_for(key))
     resp.ok()
+    true // TODO: update CRDT library so we can return false if nothing changed
   
-  fun ref clr(resp: Respond, key: String, path: Array[String] val) =>
-    try _data(key)?.clear(path).string() end
+  fun ref clr(resp: Respond, key: String, path: Array[String] val): Bool =>
+    try _data(key)?.clear(path, _delta_for(key)).string() end
     resp.ok()
+    true // TODO: update CRDT library so we can return false if nothing changed
   
   fun ref ins(
     resp: Respond,
     key: String,
     pathvalue: (Array[String] val, String))
-  ? =>
-    let delta =
-      try _deltas(key)? else
-        let d = UJSON(_identity)
-        _deltas(key) = d
-        d
-      end
-    
+  : Bool? =>
     (let path, let value) = pathvalue
     let value' = UJSONParse.value(value)?
-    try _data(key)?.insert(path, value', delta)
-    else _data(key) = UJSON(_identity).>insert(path, value', delta)
-    end
-    
+    _data_for(key).insert(path, value', _delta_for(key))
     resp.ok()
+    true // TODO: update CRDT library so we can return false if nothing changed
   
   fun ref rm(
     resp: Respond,
     key: String,
     pathvalue: (Array[String] val, String))
-  ? =>
-    let delta =
-      try _deltas(key)? else
-        let d = UJSON(_identity)
-        _deltas(key) = d
-        d
-      end
-    
+  : Bool? =>
     (let path, let value) = pathvalue
     let value' = UJSONParse.value(value)?
-    try _data(key)?.remove(path, value', delta)
-    else _data(key) = UJSON(_identity).>remove(path, value', delta)
-    end
-    
+    try _data(key)?.remove(path, value', _delta_for(key)) end
     resp.ok()
+    true // TODO: update CRDT library so we can return false if nothing changed

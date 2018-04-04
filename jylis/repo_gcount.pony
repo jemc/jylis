@@ -22,10 +22,10 @@ class RepoGCOUNT
     _deltas.clear()
     out
   
-  fun ref apply(r: Respond, cmd: Iterator[String])? =>
+  fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?
     | "GET" => get(r, _key(cmd)?)
-    | "INC" => add(r, _key(cmd)?, _value(cmd)?)
+    | "INC" => inc(r, _key(cmd)?, _value(cmd)?)
     else error
     end
   
@@ -33,27 +33,28 @@ class RepoGCOUNT
   
   fun tag _value(cmd: Iterator[String]): U64? => cmd.next()?.u64()?
   
+  fun ref _data_for(key: String): GCounter =>
+    try _data(key)? else
+      let d = GCounter(_identity)
+      _data(key) = d
+      d
+    end
+  
+  fun ref _delta_for(key: String): GCounter =>
+    try _deltas(key)? else
+      let d = GCounter(_identity)
+      _deltas(key) = d
+      d
+    end
+  
   fun ref converge(key: String, delta': Any box) => // TODO: more strict
-    try
-      let delta = delta' as GCounter box
-      try _data(key)?.converge(delta)
-      else _data(key) = GCounter(_identity).>converge(delta)
-      end
-    end
+    try _data_for(key).converge(delta' as GCounter box) end
   
-  fun get(resp: Respond, key: String) =>
+  fun get(resp: Respond, key: String): Bool =>
     resp.u64(try _data(key)?.value() else 0 end)
+    false
   
-  fun ref add(resp: Respond, key: String, value: U64) =>
-    let delta =
-      try _deltas(key)? else
-        let d = GCounter(_identity)
-        _deltas(key) = d
-        d
-      end
-    
-    try _data(key)?.increment(value, delta)
-    else _data(key) = GCounter(_identity).>increment(value, delta)
-    end
-    
-    resp.ok() // Consider issuing an error when "node-local value" overflows? (remember to update docs)
+  fun ref inc(resp: Respond, key: String, value: U64): Bool =>
+    _data_for(key).increment(value, _delta_for(key))
+    resp.ok()
+    true // TODO: update CRDT library so we can return false if nothing changed

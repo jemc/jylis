@@ -23,11 +23,11 @@ class RepoPNCOUNT
     _deltas.clear()
     out
   
-  fun ref apply(r: Respond, cmd: Iterator[String])? =>
+  fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?
     | "GET" => get(r, _key(cmd)?)
-    | "INC" => add(r, _key(cmd)?, _value(cmd)?)
-    | "DEC" => sub(r, _key(cmd)?, _value(cmd)?)
+    | "INC" => inc(r, _key(cmd)?, _value(cmd)?)
+    | "DEC" => dec(r, _key(cmd)?, _value(cmd)?)
     else error
     end
   
@@ -35,41 +35,33 @@ class RepoPNCOUNT
   
   fun tag _value(cmd: Iterator[String]): I64? => cmd.next()?.i64()?
   
+  fun ref _data_for(key: String): PNCounter =>
+    try _data(key)? else
+      let d = PNCounter(_identity)
+      _data(key) = d
+      d
+    end
+  
+  fun ref _delta_for(key: String): PNCounter =>
+    try _deltas(key)? else
+      let d = PNCounter(_identity)
+      _deltas(key) = d
+      d
+    end
+  
   fun ref converge(key: String, delta': Any box) => // TODO: more strict
-    try
-      let delta = delta' as PNCounter box
-      try _data(key)?.converge(delta)
-      else _data(key) = PNCounter(_identity).>converge(delta)
-      end
-    end
+    try _data_for(key).converge(delta' as PNCounter box) end
   
-  fun get(resp: Respond, key: String) =>
+  fun get(resp: Respond, key: String): Bool =>
     resp.i64(try _data(key)?.value().i64() else 0 end)
+    false
   
-  fun ref add(resp: Respond, key: String, value: I64) =>
-    let delta =
-      try _deltas(key)? else
-        let d = PNCounter(_identity)
-        _deltas(key) = d
-        d
-      end
-    
-    try _data(key)?.increment(value.u64(), delta)
-    else _data(key) = PNCounter(_identity).>increment(value.u64(), delta)
-    end
-    
-    resp.ok() // Consider issuing an error when "node-local value" overflows? (remember to update docs)
+  fun ref inc(resp: Respond, key: String, value: I64): Bool =>
+    _data_for(key).increment(value.u64(), _delta_for(key))
+    resp.ok()
+    true // TODO: update CRDT library so we can return false if nothing changed
   
-  fun ref sub(resp: Respond, key: String, value: I64) =>
-    let delta =
-      try _deltas(key)? else
-        let d = PNCounter(_identity)
-        _deltas(key) = d
-        d
-      end
-    
-    try _data(key)?.decrement(value.u64(), delta)
-    else _data(key) = PNCounter(_identity).>decrement(value.u64(), delta)
-    end
-    
-    resp.ok() // Consider issuing an error when "node-local value" underflows? (remember to update docs)
+  fun ref dec(resp: Respond, key: String, value: I64): Bool =>
+    _data_for(key).decrement(value.u64(), _delta_for(key))
+    resp.ok()
+    true // TODO: update CRDT library so we can return false if nothing changed
