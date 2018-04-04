@@ -6,12 +6,12 @@ primitive _OutNone
   fun tag writev(data: ByteSeqIter) => None
 
 class iso ServerNotify is TCPConnectionNotify
-  let _server: Server
+  let _database: Database
   var _parser: CommandParser
   var _resp: Respond = Respond(_OutNone)
   
-  new iso create(server': Server) =>
-    _server = server'
+  new iso create(database': Database) =>
+    _database = database'
     _parser = CommandParser({(_) => None })
   
   fun ref _init(conn: _Conn ref) =>
@@ -32,5 +32,5 @@ class iso ServerNotify is TCPConnectionNotify
   
   fun ref received(conn: _Conn ref, data: Array[U8] val, times: USize): Bool =>
     _parser.append(data)
-    for cmd in _parser do _server(_resp, cmd) end
+    for cmd in _parser do _database(_resp, cmd) end
     true // TODO?

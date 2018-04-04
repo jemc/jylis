@@ -98,12 +98,12 @@ class TestCluster is UnitTest
     h.dispose_when_done(bar_c)
     h.dispose_when_done(baz_c)
     
-    _Wait(h, 3 * tick, {(h)(foo_s, bar_s, baz_s) =>
-      foo_s(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "2"])
-      bar_s(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "3"])
-      baz_s(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "4"])
+    _Wait(h, 3 * tick, {(h)(foo_d, bar_d, baz_d) =>
+      foo_d(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "2"])
+      bar_d(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "3"])
+      baz_d(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "4"])
       
       _Wait(h, 2 * tick, {(h) =>
-        foo_s(_ExpectRespond(h, ":9\r\n"), ["GCOUNT"; "GET"; "foo"])
+        foo_d(_ExpectRespond(h, ":9\r\n"), ["GCOUNT"; "GET"; "foo"])
       })
     })

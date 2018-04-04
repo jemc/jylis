@@ -15,7 +15,7 @@ actor Server
   =>
     (_log, _addr, _database) = (log', addr', database')
     
-    let listen_notify = ServerListenNotify(this)
+    let listen_notify = ServerListenNotify(this, _database)
     _listen = _Listen(auth', consume listen_notify, "", port')
   
   be dispose() =>
@@ -27,6 +27,3 @@ actor Server
   
   be _listen_ready() => None
     _log.info() and _log("listen ready")
-  
-  be apply(resp: Respond, cmd: Array[String] val) =>
-    _database(resp, cmd)
