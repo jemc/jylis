@@ -1,21 +1,10 @@
 use "collections"
 use "resp"
 
-primitive RepoHelp
-  fun apply(): String =>
-    """
-    The first word of each command must be a data type.
-    The following are valid data types (case sensitive):
-      TREG    - Timestamped Register (Latest Write Wins)
-      GCOUNT  - Grow-Only Counter
-      PNCOUNT - Positive/Negative Counter
-      UJSON   - Unordered JSON (Nested Observed-Remove Maps and Sets)
-    """
-
-class Repo
+class val Repo
   let _map: Map[String, RepoManagerAny] = _map.create()
   
-  new create(identity': U64) =>
+  new val create(identity': U64) =>
     // TODO: allow users to create their own keyspaces/repos with custom types,
     // noting that allowing this requires a CRDT data structure for this map
     // of repos, with some way of resolving conflicts that doesn't break things
@@ -25,14 +14,22 @@ class Repo
     _map("PNCOUNT") = RepoManager[RepoPNCOUNT, RepoPNCOUNTHelp](identity')
     _map("UJSON")   = RepoManager[RepoUJSON,   RepoUJSONHelp]  (identity')
   
-  fun ref apply(resp: Respond, cmd: Array[String] val) =>
+  fun apply(resp: Respond, cmd: Array[String] val) =>
     try
       _map(cmd(0)?)?(resp, cmd)
     else
-      HelpRespond(resp, RepoHelp())
+      HelpRespond(resp,
+        """
+        The first word of each command must be a data type.
+        The following are valid data types (case sensitive):
+          TREG    - Timestamped Register (Latest Write Wins)
+          GCOUNT  - Grow-Only Counter
+          PNCOUNT - Positive/Negative Counter
+          UJSON   - Unordered JSON (Nested Observed-Remove Maps and Sets)
+        """)
     end
   
-  fun ref flush_deltas(cluster: Cluster, serial: _Serialise) =>
+  fun flush_deltas(cluster: Cluster, serial: _Serialise) =>
     let out: Array[(String, Array[(String, Any box)] box)] = []
     var deltas_size: USize = 0
     
@@ -40,5 +37,5 @@ class Repo
       repo.flush_deltas(name, cluster, serial)
     end
   
-  fun ref converge_deltas(deltas: (String, Array[(String, Any box)] val)) =>
+  fun converge_deltas(deltas: (String, Array[(String, Any box)] val)) =>
     try _map(deltas._1)?.converge_deltas(deltas._2) end
