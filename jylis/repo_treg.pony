@@ -12,7 +12,7 @@ class RepoTREG
   let _data:   Map[String, TReg[String]] = _data.create()
   let _deltas: Map[String, TReg[String]] = _deltas.create()
   
-  new ref create() => None
+  new ref create(identity': U64) => None
   
   fun ref deltas_size(): USize => _deltas.size()
   fun ref flush_deltas(): Array[(String, Any box)] box =>

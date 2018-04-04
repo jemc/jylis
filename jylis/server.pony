@@ -30,17 +30,10 @@ actor Server
     _log.info() and _log("listen ready")
   
   be apply(resp: Respond, cmd: Array[String] val) =>
-    try
-      _repo(resp, cmd.values())?
-    else
-      _log.fine() and _log("couldn't parse command", cmd)
-      HelpResponder(resp, cmd)
-    end
+    _repo(resp, cmd)
   
   be flush_deltas(cluster: Cluster, serial: _Serialise) =>
     _repo.flush_deltas(cluster, serial)
   
-  be converge_deltas(
-    deltas: Array[(String, Array[(String, Any box)] box)] val)
-  =>
+  be converge_deltas(deltas: (String, Array[(String, Any box)] val)) =>
     _repo.converge_deltas(deltas)

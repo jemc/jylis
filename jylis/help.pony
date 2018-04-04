@@ -1,16 +1,13 @@
 use "collections"
 use "resp"
 
-actor HelpResponder
-  be apply(resp: Respond, cmd: Array[String] val) =>
+primitive HelpRespond
+  fun apply(resp: Respond, help: String) =>
     let prefix = "BADCOMMAND (couldn't parse command)\n"
-    resp.err(prefix + Help(cmd).clone().>rstrip())
-
-primitive Help
-  fun apply(cmd: Array[String] val): String =>
-    RepoHelp(cmd.values())
+    resp.err(prefix + help.clone().>rstrip())
 
 trait val HelpLeaf
+  new val create()
   fun datatype(): String
   fun commands(map: Map[String, String])
   

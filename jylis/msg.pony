@@ -18,7 +18,7 @@ class val MsgAnnounceAddrs is Msg
   fun string(): String => "AnnounceAddrs" // TODO: print data fields
 
 class val MsgPushDeltas is Msg
-  let deltas: Array[(String, Array[(String, Any box)] box)] box
-  new box create(deltas': Array[(String, Array[(String, Any box)] box)] box) =>
+  let deltas: (String, Array[(String, Any box)] box)
+  new box create(deltas': (String, Array[(String, Any box)] box)) =>
     deltas = deltas'
   fun string(): String => "PushDeltas" // TODO: print data fields?

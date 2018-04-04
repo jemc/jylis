@@ -196,7 +196,7 @@ actor Cluster
   
   fun tag broadcast_deltas(
     serial: _Serialise,
-    deltas: Array[(String, Array[(String, Any box)] box)] box)
+    deltas: (String, Array[(String, Any box)] box))
   =>
     try _broadcast_bytes(serial.to_bytes(MsgPushDeltas(deltas))?) end
   
