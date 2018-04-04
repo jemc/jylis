@@ -25,7 +25,7 @@ class Config
     ])?.>add_help()?
     
     let cmd =
-      match cli.CommandParser(spec).parse(env.args, env.vars())
+      match cli.CommandParser(spec).parse(env.args, env.vars)
       | let c: cli.Command => c
       | let c: cli.CommandHelp =>
         c.print_help(env.out)

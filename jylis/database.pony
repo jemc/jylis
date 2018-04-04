@@ -1,7 +1,7 @@
 use "collections"
 use "resp"
 
-class val RepoMap
+class val Database
   let _map: Map[String, RepoManagerAny] = _map.create()
   
   new val create(identity': U64) =>

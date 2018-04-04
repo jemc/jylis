@@ -78,17 +78,21 @@ class TestCluster is UnitTest
     let bar = Address("127.0.0.1", "9998", "bar")
     let baz = Address("127.0.0.1", "9997", "baz")
     
-    let foo_s = Server(auth, log, foo, "6379")
-    let bar_s = Server(auth, log, bar, "6378")
-    let baz_s = Server(auth, log, baz, "6377")
+    let foo_d = Database(foo.hash())
+    let bar_d = Database(bar.hash())
+    let baz_d = Database(baz.hash())
+    
+    let foo_s = Server(auth, log, foo, "6379", foo_d)
+    let bar_s = Server(auth, log, bar, "6378", bar_d)
+    let baz_s = Server(auth, log, baz, "6377", baz_d)
     
     h.dispose_when_done(foo_s)
     h.dispose_when_done(bar_s)
     h.dispose_when_done(baz_s)
     
-    let foo_c = Cluster(auth, log, foo, [], foo_s, tick)
-    let bar_c = Cluster(auth, log, bar, [foo], bar_s, tick)
-    let baz_c = Cluster(auth, log, baz, [foo], baz_s, tick)
+    let foo_c = Cluster(auth, log, foo, [], foo_d, tick)
+    let bar_c = Cluster(auth, log, bar, [foo], bar_d, tick)
+    let baz_c = Cluster(auth, log, baz, [foo], baz_d, tick)
     
     h.dispose_when_done(foo_c)
     h.dispose_when_done(bar_c)

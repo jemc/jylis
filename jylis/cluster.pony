@@ -5,7 +5,7 @@ actor Cluster
   let _auth: AmbientAuth // TODO: de-escalate to NetAuth
   let _log: Log
   let _my_addr: Address
-  let _server: Server
+  let _database: Database
   let _serial: _Serialise
   let _listen: _Listen
   let _heart: Heart
@@ -20,13 +20,13 @@ actor Cluster
     log': Log,
     my_addr': Address,
     known_addrs': Array[Address] val,
-    server': Server,
+    database': Database,
     heart_rate': U64 = 10_000_000_000) // 10s
   =>
     _auth = auth'
     _log = log'
     _my_addr = my_addr'
-    _server = server'
+    _database = database'
     _serial = _Serialise(auth')
     
     let listen_notify = ClusterListenNotify(this, _serial.signature())
@@ -115,13 +115,13 @@ actor Cluster
     end
     
     // On every tick, flush deltas to other nodes.
-    _server.flush_deltas(this, _serial)
+    _database.flush_deltas(this, _serial)
     
     // On every tick, sync active connections.
     _sync_actives()
   
   be flush_deltas() =>
-    _server.flush_deltas(this, _serial)
+    _database.flush_deltas(this, _serial)
   
   be _listen_failed() =>
     _log.err() and _log("listen failed")
@@ -220,7 +220,7 @@ actor Cluster
       _converge_addrs(msg.known_addrs)
       _send(conn, MsgPong)
     | let msg: MsgPushDeltas =>
-      _server.converge_deltas(msg.deltas)
+      _database.converge_deltas(msg.deltas)
       _send(conn, MsgPong)
     else
       _passive_error(conn, "unhandled message", msg'.string())

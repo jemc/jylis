@@ -4,20 +4,19 @@ actor Server
   let _log: Log
   let _addr: Address
   let _listen: _Listen
-  let _repo: RepoMap
+  let _database: Database
   
   new create(
     auth': AmbientAuth,
     log': Log,
     addr': Address,
-    port': String)
+    port': String,
+    database': Database)
   =>
-    (_log, _addr) = (log', addr')
+    (_log, _addr, _database) = (log', addr', database')
     
     let listen_notify = ServerListenNotify(this)
     _listen = _Listen(auth', consume listen_notify, "", port')
-    
-    _repo = RepoMap(_addr.hash())
   
   be dispose() =>
     _listen.dispose()
@@ -30,10 +29,4 @@ actor Server
     _log.info() and _log("listen ready")
   
   be apply(resp: Respond, cmd: Array[String] val) =>
-    _repo(resp, cmd)
-  
-  be flush_deltas(cluster: Cluster, serial: _Serialise) =>
-    _repo.flush_deltas(cluster, serial)
-  
-  be converge_deltas(deltas: (String, Array[(String, Any box)] val)) =>
-    _repo.converge_deltas(deltas)
+    _database(resp, cmd)
