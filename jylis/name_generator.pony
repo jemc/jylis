@@ -277,7 +277,7 @@ class NameGenerator
     "birth"
     "bloom"
     "bolt"
-    "boudary"
+    "boundary"
     "breeze"
     "bridge"
     "canyon"
