@@ -1,3 +1,4 @@
+use "time"
 use "resp"
 
 interface RepoAny
@@ -16,6 +17,7 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
   let _name: String
   let _repo: R
   var _deltas_fn: (_SendDeltasFn | None) = None
+  var _last_proactive: U64 = 0
   
   new create(name': String, identity': U64) =>
     (_name, _repo) = (name', R(identity'))
@@ -24,11 +26,22 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
     try
       let iter = cmd.values()
       iter.next()? // discard first word; it was already read to route us here
-      _repo(resp, iter)?
+      let changed = _repo(resp, iter)?
+      if changed then _maybe_proactive_flush() end
     else
       let iter = cmd.values()
       try iter.next()? end // try to discard the first word, or don't...
       HelpRespond(resp, H(iter))
+    end
+  
+  fun ref _maybe_proactive_flush() =>
+    try
+      let fn = _deltas_fn as _SendDeltasFn
+      let now = Time.millis()
+      if (now - 500) >= _last_proactive then
+        fn((_name, _repo.flush_deltas()))
+        _last_proactive = now
+      end
     end
   
   be flush_deltas(fn: _SendDeltasFn) =>
