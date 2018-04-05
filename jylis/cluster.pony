@@ -38,7 +38,8 @@ actor Cluster
     
     _known_addrs.set(my_addr')
     _known_addrs.union(known_addrs'.values())
-    _sync_actives()
+    
+    _heartbeat()
   
   be dispose() =>
     _listen.dispose()
