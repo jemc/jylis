@@ -35,6 +35,14 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
     end
   
   fun ref _maybe_proactive_flush() =>
+    """
+    When we know there has been a recent change to the data, we can choose to
+    proactively flush our deltas to the other replicas, for more immediate
+    propagation of changes. We use a simple heuristic that allows us to do
+    proactive propagation at most once every 500 milliseconds.
+    
+    We can only do this if we've already received and stored a _SendDeltasFn.
+    """
     try
       let fn = _deltas_fn as _SendDeltasFn
       let now = Time.millis()
