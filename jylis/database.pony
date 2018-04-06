@@ -1,10 +1,14 @@
 use "collections"
+use "promises"
 use "resp"
 
 class val Database
+  let _log: Log
   let _map: Map[String, RepoManagerAny] = _map.create()
   
-  new val create(identity': U64) =>
+  new val create(log': Log, identity': U64) =>
+    _log = log'
+    
     // TODO: allow users to create their own keyspaces/repos with custom types,
     // noting that allowing this requires a CRDT data structure for this map
     // of repos, with some way of resolving conflicts that doesn't break things
@@ -39,3 +43,17 @@ class val Database
   
   fun converge_deltas(deltas: (String, Array[(String, Any box)] val)) =>
     try _map(deltas._1)?.converge_deltas(deltas._2) end
+  
+  fun clean_shutdown(): Promise[None] =>
+    """
+    Return a promise that is fulfilled when all RepoManagers in the _map
+    have finished executing their owne clean_shutdown behaviour.
+    """
+    _log.info() and _log("database shutting down")
+    let promises = Array[Promise[None]]
+    for r in _map.values() do
+      let promise = Promise[None]
+      promises.push(promise)
+      r.clean_shutdown(promise)
+    end
+    Promises[None].join(promises.values()).next[None]({(_) => _ })

@@ -78,9 +78,9 @@ class TestCluster is UnitTest
     let bar = Address("127.0.0.1", "9998", "bar")
     let baz = Address("127.0.0.1", "9997", "baz")
     
-    let foo_d = Database(foo.hash())
-    let bar_d = Database(bar.hash())
-    let baz_d = Database(baz.hash())
+    let foo_d = Database(log, foo.hash())
+    let bar_d = Database(log, bar.hash())
+    let baz_d = Database(log, baz.hash())
     
     let foo_s = Server(auth, log, foo, "6379", foo_d)
     let bar_s = Server(auth, log, bar, "6378", bar_d)
