@@ -1,3 +1,8 @@
+---
+title: PNCOUNT - Positive/Negative Counter
+permalink: /docs/pncount/
+---
+
 # `PNCOUNT` - Positive/Negative Counter
 
 A positive/negative counter holds an integer value which can be increased or decreased.

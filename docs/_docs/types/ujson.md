@@ -1,3 +1,8 @@
+---
+title: UJSON - Unordered JSON
+permalink: /docs/ujson/
+---
+
 # `UJSON` - Unordered JSON (Nested Observed-Remove Maps and Sets)
 
 A UJSON node holds arbitrarily nested collections of unordered values, represented with JSON syntax. It is possible to read or modify either all or part of the data set, and concurrent modifications are resolved with causal observed-remove semantics (any value that is locally visible can be removed).

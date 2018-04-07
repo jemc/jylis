@@ -1,3 +1,8 @@
+---
+title: GCOUNT - Grow-Only Counter
+permalink: /docs/gcount/
+---
+
 # `GCOUNT` - Grow-Only Counter
 
 A grow-only counter holds an integer value that can only be increased.
