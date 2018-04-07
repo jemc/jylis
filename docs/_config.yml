@@ -7,7 +7,7 @@ description: >
 baseurl: "/jylis" # the subpath of your site, e.g. /blog/
 url: https://jemc.github.io/jylis # the base hostname & protocol for your site
 git_address: https://github.com/jemc/jylis
-git_edit_address: https://github.com/jemc/jylis/blob/gh-pages
+git_edit_address: https://github.com/jemc/jylis/blob/master/docs
 
 # theme options from https://bootswatch.com/
 # comment out this to use default Bootstrap
