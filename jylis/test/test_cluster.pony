@@ -67,7 +67,7 @@ primitive _Wait
 class TestCluster is UnitTest
   fun name(): String => "jylis.Cluster"
   
-  fun _tick(): U64 => 50_000_000 // 50ms
+  fun _tick(): U64 => 500_000_000 // 500ms
   
   fun _addr(string: String): Address =>
     Address.from_string("127.0.0.1:" + string)
