@@ -6,7 +6,7 @@ class val Config
   var port:           String         = "6379"
   var addr:           Address        = Address.from_string("127.0.0.1:9999:")
   var seed_addrs:     Array[Address] = []
-  var heartbeat_time: U64            = 10
+  var heartbeat_time: F64            = 10
   var log:            Log            = Log.create_none()
   
   fun ref normalize() =>
@@ -31,7 +31,7 @@ primitive ConfigFromCLI
         "A space-separated list of the host:port:name for other known nodes."
         where short' = 's', default' = "")
       
-      cli.OptionSpec.u64("heartbeat-time",
+      cli.OptionSpec.f64("heartbeat-time",
         "The number of seconds between heartbeats in the clustering protocol."
         where short' = 'T', default' = 10)
       
@@ -73,7 +73,7 @@ primitive ConfigFromCLI
     end
     config.seed_addrs = consume seed_addrs
     
-    config.heartbeat_time = cmd.option("heartbeat-time").u64()
+    config.heartbeat_time = cmd.option("heartbeat-time").f64()
     
     config.log =
       match cmd.option("log-level").string()

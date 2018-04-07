@@ -45,7 +45,7 @@ primitive _Wait
   A quick and dirty Timers wrapper that lets you pass a lambda to execute later
   in a test, passing the TestHelper along to the lambda on the other side.
   """
-  fun apply(h: TestHelper, duration: U64, fn: {(TestHelper)} val) =>
+  fun apply(h: TestHelper, duration: F64, fn: {(TestHelper)} val) =>
     let timers: Timers = Timers
     h.dispose_when_done(timers)
     
@@ -62,12 +62,12 @@ primitive _Wait
           true
       end
     
-    timers(Timer(consume notify, duration))
+    timers(Timer(consume notify, (duration * 1_000_000_000).u64()))
 
 class TestCluster is UnitTest
   fun name(): String => "jylis.Cluster"
   
-  fun _tick(): U64 => 500_000_000 // 500ms
+  fun _tick(): F64 => 0.050 // 50ms
   
   fun _addr(string: String): Address =>
     Address.from_string("127.0.0.1:" + string)
@@ -87,7 +87,7 @@ class TestCluster is UnitTest
     config
   
   fun apply(h: TestHelper)? =>
-    h.long_test(10 * _tick())
+    h.long_test((10 * _tick() * 1_000_000_000).u64())
     let auth = h.env.root as AmbientAuth
     
     let foo = _config(h, "6379", _addr("9999:foo"))

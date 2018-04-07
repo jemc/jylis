@@ -33,7 +33,7 @@ actor Cluster
     let listen_notify = ClusterListenNotify(this, _serial.signature())
     _listen = _Listen(auth', consume listen_notify, "", _my_addr.port)
     
-    _heart = Heart(this, _config.heartbeat_time * 1_000_000_000)
+    _heart = Heart(this, (_config.heartbeat_time * 1_000_000_000).u64())
     _deltas_fn = this~broadcast_deltas(_serial)
     
     _known_addrs.set(_my_addr)
@@ -136,12 +136,12 @@ actor Cluster
     _passives.set(conn)
     _last_activity(conn) = _tick
   
+  be _passive_initiated(conn: _Conn tag) =>
+    _log.info() and _log("passive cluster connection initiated")
+  
   be _active_connected(conn: _Conn tag) =>
     _log.info() and _log("active cluster connection connected")
     _last_activity(conn) = _tick
-  
-  be _passive_initiated(conn: _Conn tag) =>
-    _log.info() and _log("passive cluster connection initiated")
   
   be _active_initiated(conn: _Conn tag) =>
     _log.info() and _log("active cluster connection initiated")
