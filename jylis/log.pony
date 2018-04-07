@@ -1,12 +1,19 @@
 use "logger"
 use "inspect"
 
+primitive _LogOutStreamNone
+  fun tag print(data: ByteSeq) => None
+  fun tag write(data: ByteSeq) => None
+  fun tag printv(data: ByteSeqIter) => None
+  fun tag writev(data: ByteSeqIter) => None
+
 class val Log
   let _log: Logger[String]
   new val create_fine(out: OutStream) => _log = StringLogger(Fine, out)
   new val create_info(out: OutStream) => _log = StringLogger(Info, out)
   new val create_warn(out: OutStream) => _log = StringLogger(Warn, out)
   new val create_err(out: OutStream) => _log = StringLogger(Error, out)
+  new val create_none() => _log = StringLogger(Error, _LogOutStreamNone)
   
   fun fine(): Bool => _log(Fine)
   fun info(): Bool => _log(Info)

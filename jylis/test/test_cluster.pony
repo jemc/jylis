@@ -67,38 +67,55 @@ primitive _Wait
 class TestCluster is UnitTest
   fun name(): String => "jylis.Cluster"
   
+  fun _tick(): U64 => 50_000_000 // 50ms
+  
+  fun _addr(string: String): Address =>
+    Address.from_string("127.0.0.1:" + string)
+  
+  fun _config(
+    h: TestHelper,
+    port: String,
+    addr: Address,
+    seed_addrs: Array[Address] iso = [])
+  : Config =>
+    let config = Config
+    config.port           = port
+    config.addr           = addr
+    config.seed_addrs     = consume seed_addrs
+    config.heartbeat_time = _tick()
+    config.log            = Log.create_err(h.env.out)
+    config
+  
   fun apply(h: TestHelper)? =>
-    let tick: U64 = 50_000_000 // 50ms
-    h.long_test(10 * tick)
-    
+    h.long_test(10 * _tick())
     let auth = h.env.root as AmbientAuth
-    let log  = Log.create_err(h.env.out)
     
-    let foo = Address("127.0.0.1", "9999", "foo")
-    let bar = Address("127.0.0.1", "9998", "bar")
-    let baz = Address("127.0.0.1", "9997", "baz")
+    let foo = _config(h, "6379", _addr("9999:foo"))
+    let bar = _config(h, "6378", _addr("9998:bar"), [_addr("9999")])
+    let baz = _config(h, "6377", _addr("9997:baz"), [_addr("9999")])
     
-    let foo_d = Database(log, foo.hash())
-    let bar_d = Database(log, bar.hash())
-    let baz_d = Database(log, baz.hash())
+    let foo_d = Database(foo)
+    let bar_d = Database(bar)
+    let baz_d = Database(baz)
     
-    let foo_s = Server(auth, log, foo, "6379", foo_d)
-    let bar_s = Server(auth, log, bar, "6378", bar_d)
-    let baz_s = Server(auth, log, baz, "6377", baz_d)
+    let foo_s = Server(auth, foo, foo_d)
+    let bar_s = Server(auth, bar, bar_d)
+    let baz_s = Server(auth, baz, baz_d)
     
     h.dispose_when_done(foo_s)
     h.dispose_when_done(bar_s)
     h.dispose_when_done(baz_s)
     
-    let foo_c = Cluster(auth, log, foo, [], foo_d, tick)
-    let bar_c = Cluster(auth, log, bar, [foo], bar_d, tick)
-    let baz_c = Cluster(auth, log, baz, [foo], baz_d, tick)
+    let foo_c = Cluster(auth, foo, foo_d)
+    let bar_c = Cluster(auth, bar, bar_d)
+    let baz_c = Cluster(auth, baz, baz_d)
     
     h.dispose_when_done(foo_c)
     h.dispose_when_done(bar_c)
     h.dispose_when_done(baz_c)
     
-    _Wait(h, 3 * tick, {(h)(foo_d, bar_d, baz_d) =>
+    let tick = _tick()
+    _Wait(h, 3 * tick, {(h)(foo_d, bar_d, baz_d, tick) =>
       foo_d(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "2"])
       bar_d(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "3"])
       baz_d(_ExpectRespond(h, "+OK\r\n"), ["GCOUNT"; "INC"; "foo"; "4"])

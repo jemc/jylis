@@ -7,6 +7,7 @@ class val Config
   var addr:           Address        = Address.from_string("127.0.0.1:9999:")
   var seed_addrs:     Array[Address] = []
   var heartbeat_time: U64            = 10
+  var log:            Log            = Log.create_none()
   
   fun ref normalize() =>
     // Force a random name if the addr.name is empty.
@@ -18,13 +19,13 @@ class val Config
 primitive ConfigFromCLI
   fun _parse(env: Env): cli.Command? =>
     let spec = cli.CommandSpec.leaf("jylis", "", [
-      cli.OptionSpec.string("port",
-        "The port for accepting commands over RESP-protocol connections."
-        where short' = 'p', default' = "6379")
-      
       cli.OptionSpec.string("addr",
         "The host:port:name to be advertised to other clustering nodes."
         where short' = 'a', default' = "127.0.0.1:9999:")
+      
+      cli.OptionSpec.string("port",
+        "The port for accepting commands over RESP-protocol connections."
+        where short' = 'p', default' = "6379")
       
       cli.OptionSpec.string("seed-addrs",
         "A space-separated list of the host:port:name for other known nodes."
@@ -33,6 +34,10 @@ primitive ConfigFromCLI
       cli.OptionSpec.u64("heartbeat-time",
         "The number of seconds between heartbeats in the clustering protocol."
         where short' = 'T', default' = 10)
+      
+      cli.OptionSpec.string("log-level",
+        "Maximum level of detail for logging (error, warn, info, or debug)."
+        where short' = 'L', default' = "info")
     ], [
       cli.ArgSpec.string_seq("", "")
     ])?.>add_help()?
@@ -69,6 +74,17 @@ primitive ConfigFromCLI
     config.seed_addrs = consume seed_addrs
     
     config.heartbeat_time = cmd.option("heartbeat-time").u64()
+    
+    config.log =
+      match cmd.option("log-level").string()
+      | "error" => Log.create_err(env.out)
+      | "warn"  => Log.create_warn(env.out)
+      | "info"  => Log.create_info(env.out)
+      | "debug" => Log.create_fine(env.out)
+      else
+        env.out.print("Unknown log-level: " + cmd.option("log-level").string())
+        error
+      end
     
     config.normalize()
     config

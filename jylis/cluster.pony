@@ -4,6 +4,7 @@ use "crdt"
 actor Cluster
   let _auth: AmbientAuth // TODO: de-escalate to NetAuth
   let _log: Log
+  let _config: Config
   let _my_addr: Address
   let _database: Database
   let _serial: _Serialise
@@ -18,26 +19,25 @@ actor Cluster
   
   new create(
     auth': AmbientAuth,
-    log': Log,
-    my_addr': Address,
-    known_addrs': Array[Address] val,
-    database': Database,
-    heart_rate': U64 = 10_000_000_000) // 10s
+    config': Config,
+    database': Database)
   =>
     _auth = auth'
-    _log = log'
-    _my_addr = my_addr'
+    _config = config'
     _database = database'
+    
+    _log = _config.log
+    _my_addr = _config.addr
     _serial = _Serialise(auth')
     
     let listen_notify = ClusterListenNotify(this, _serial.signature())
-    _listen = _Listen(auth', consume listen_notify, "", my_addr'.port)
+    _listen = _Listen(auth', consume listen_notify, "", _my_addr.port)
     
-    _heart = Heart(this, heart_rate')
+    _heart = Heart(this, _config.heartbeat_time * 1_000_000_000)
     _deltas_fn = this~broadcast_deltas(_serial)
     
-    _known_addrs.set(my_addr')
-    _known_addrs.union(known_addrs'.values())
+    _known_addrs.set(_my_addr)
+    _known_addrs.union(_config.seed_addrs.values())
     
     _heartbeat()
   

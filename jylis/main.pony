@@ -4,9 +4,9 @@ actor Main
       let auth     = env.root as AmbientAuth
       let log      = Log.create_fine(env.out)
       let config   = ConfigFromCLI(env)?
-      let database = Database(log, config.addr.hash())
-      let server   = Server(auth, log, config.addr, config.port, database)
-      let cluster  = Cluster(auth, log, config.addr, config.seed_addrs, database)
+      let database = Database(config)
+      let server   = Server(auth, config, database)
+      let cluster  = Cluster(auth, config, database)
       Dispose(database, server, cluster).on_signal()
       
       env.out.print(Logo())
