@@ -26,3 +26,4 @@ lldb-test: bin/test
 ci: test
 
 ci-setup:
+	stable fetch
