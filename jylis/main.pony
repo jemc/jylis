@@ -3,7 +3,7 @@ actor Main
     try
       let auth     = env.root as AmbientAuth
       let log      = Log.create_fine(env.out)
-      let config   = Config(env)?
+      let config   = ConfigFromCLI(env)?
       let database = Database(log, config.addr.hash())
       let server   = Server(auth, log, config.addr, config.port, database)
       let cluster  = Cluster(auth, log, config.addr, config.seed_addrs, database)
