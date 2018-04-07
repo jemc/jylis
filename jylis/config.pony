@@ -2,10 +2,11 @@ use cli = "cli"
 use "random"
 use "time"
 
-class Config
+class val Config
   let port: String
   let addr: Address
-  let seed_addrs: Array[Address] = []
+  let seed_addrs: Array[Address]
+  let heartbeat_time: U64
   
   new val create(env: Env) ? =>
     let spec = cli.CommandSpec.leaf("jylis", "", [
@@ -20,6 +21,10 @@ class Config
       cli.OptionSpec.string("seed-addrs",
         "A space-separated list of the host:port:name for other known nodes."
         where short' = 's', default' = "")
+      
+      cli.OptionSpec.u64("heartbeat-time",
+        "The number of seconds between heartbeats in the clustering protocol."
+        where short' = 'T', default' = 10)
     ], [
       cli.ArgSpec.string_seq("", "")
     ])?.>add_help()?
@@ -51,6 +56,9 @@ class Config
     end
     addr = addr'
     
+    seed_addrs = []
     for seed_str in cmd.option("seed-addrs").string().split(" ").values() do
       seed_addrs.push(Address.from_string(seed_str))
     end
+    
+    heartbeat_time = cmd.option("heartbeat-time").u64()
