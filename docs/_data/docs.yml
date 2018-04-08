@@ -1,7 +1,6 @@
 - title: Getting Started
   index: start
   docs:
-  # - start
   - download
   - docker
   - compile
@@ -10,7 +9,6 @@
 - title: Data Types
   index: types
   docs:
-  # - types
   - treg
   - gcount
   - pncount
