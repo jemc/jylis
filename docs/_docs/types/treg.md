@@ -3,7 +3,7 @@ title: TREG - Timestamped Register
 permalink: /docs/types/treg/
 ---
 
-# `TREG` - Timestamped Register (Latest Write Wins)
+# `TREG` - Timestamped Register<br>(Latest Write Wins)
 
 A timestamped register holds a single value and a logical timestamp associated with it.
 
