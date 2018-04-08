@@ -41,7 +41,7 @@ OK
 (integer) 10
 ```
 
-And, just to confirm everything's working as expected, we can try increasing and reading it again, expecting to:
+And, just to confirm everything's working as expected, we can try increasing and reading it again:
 
 ```sh
 127.0.0.1:6379> GCOUNT INC mykey 15
@@ -50,4 +50,4 @@ OK
 (integer) 25
 ```
 
-The example worked through here was taken from [the documentation for the `GCOUNT`](../gcount#examples) data type. Every data type documentation page includes such examples, and working through them interactively in this way is a great way to get acquainted with those data types.
+The example we worked through here was taken from [the documentation for the `GCOUNT`](../gcount#examples) data type. Every data type documentation page includes such examples, and working through them interactively in this way is a great way to get acquainted with those data types.
