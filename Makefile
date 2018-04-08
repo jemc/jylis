@@ -30,7 +30,7 @@ ci-setup:
 
 bin/${PKG}-release: bundle.json $(shell find ${PKG} -name *.pony)
 	mkdir -p bin
-	# docker build -t ${PKG}-release .
+	docker build -t ${PKG}-release .
 	docker create --name ${PKG}-release ${PKG}-release
 	docker cp ${PKG}-release:/${PKG} bin/${PKG}-release
 	docker rm -v ${PKG}-release
