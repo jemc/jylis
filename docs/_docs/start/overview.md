@@ -12,7 +12,7 @@ If you're here, you're likely interested in trying Jylis for yourself. There are
 
 - For other plaforms, the easiest way is to [use the docker image](../docker).
 
-- If you want to hack in your own changes, you may need to [build from source](../compile).
+- If you want to hack in your own changes, you'll need to [build from source](../compile).
 
 <br>
 <div class="panel panel-warning">
