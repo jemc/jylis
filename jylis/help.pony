@@ -3,7 +3,7 @@ use "resp"
 
 primitive HelpRespond
   fun apply(resp: Respond, help: String) =>
-    let prefix = "BADCOMMAND (couldn't parse command)\n"
+    let prefix = "BADCOMMAND (could not parse command)\n"
     resp.err(prefix + help.clone().>rstrip())
 
 trait val HelpLeaf
