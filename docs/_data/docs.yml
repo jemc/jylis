@@ -1,6 +1,9 @@
 - title: Getting Started
   docs:
-  - welcome
+  - overview
+  - download
+  - docker
+  - compile
 
 - title: Data Types
   docs:
