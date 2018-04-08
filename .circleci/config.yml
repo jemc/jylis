@@ -14,6 +14,13 @@ jobs:
       - checkout
       - run: make ci-setup
       - run: make ci
+  nightly-release:
+    docker:
+      - image: ponylang/ponyc:latest
+    steps:
+      - checkout
+      - run: make ci-setup
+      - run: make release
 
 workflows:
   version: 2
@@ -29,3 +36,4 @@ workflows:
               only: master
     jobs:
       - vs-ponyc-master
+      - nightly-release

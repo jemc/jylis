@@ -1,13 +1,13 @@
 all: bin/jylis
-.PHONY: all test clean lldb lldb-test ci ci-setup
+.PHONY: all test clean lldb lldb-test ci ci-setup release
 
 PKG=jylis
 
-bin/${PKG}: $(shell find ${PKG} -name *.pony)
+bin/${PKG}: bundle.json $(shell find ${PKG} -name *.pony)
 	mkdir -p bin
 	stable env ponyc --debug -o bin ${PKG}
 
-bin/test: $(shell find ${PKG} -name *.pony)
+bin/test: bundle.json $(shell find ${PKG} -name *.pony)
 	mkdir -p bin
 	stable env ponyc --debug -o bin ${PKG}/test
 
@@ -27,3 +27,21 @@ ci: test
 
 ci-setup:
 	stable fetch
+
+bin/${PKG}-release: bundle.json $(shell find ${PKG} -name *.pony)
+	mkdir -p bin
+	# docker build -t ${PKG}-release .
+	docker create --name ${PKG}-release ${PKG}-release
+	docker cp ${PKG}-release:/${PKG} bin/${PKG}-release
+	docker rm -v ${PKG}-release
+
+# The `make release` target will update the "nightly" release binary on GitHub.
+GITHUB_RELEASE_ID=10442813
+GITHUB_AUTH=-H "Authorization: token ${GITHUB_API_TOKEN}"
+GITHUB_API_URL=https://api.github.com/repos/jemc/${PKG}
+GITHUB_UPLOADS_URL=https://uploads.github.com/repos/jemc/${PKG}
+release: bin/${PKG}-release
+	@curl -X PATCH  ${GITHUB_AUTH} ${GITHUB_API_URL}/releases/${GITHUB_RELEASE_ID} --data '{"target_commitish": "master"}'
+	@curl -X GET    ${GITHUB_AUTH} ${GITHUB_API_URL}/releases/${GITHUB_RELEASE_ID}/assets | jq .[0].id | xargs -I '{id}' \
+	 curl -X DELETE ${GITHUB_AUTH} ${GITHUB_API_URL}/releases/assets/{id}
+	@curl -X POST   ${GITHUB_AUTH} ${GITHUB_UPLOADS_URL}/releases/${GITHUB_RELEASE_ID}/assets?name=jylis --data-binary @"bin/${PKG}-release" -H "Content-Type: application/octet-stream"
