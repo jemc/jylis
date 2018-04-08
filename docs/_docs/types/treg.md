@@ -1,6 +1,6 @@
 ---
 title: TREG - Timestamped Register
-permalink: /docs/treg/
+permalink: /docs/types/treg/
 ---
 
 # `TREG` - Timestamped Register (Latest Write Wins)

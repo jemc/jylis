@@ -1,18 +1,18 @@
 ---
-title: Overview
-permalink: /docs/overview/
+title: Getting Started
+permalink: /docs/start/
 redirect_from: /docs/index.html
 ---
 
-# Overview
+# Getting Started
 
 If you're here, you're likely interested in trying Jylis for yourself. There are a few good ways do that:
 
-- For 64-bit Linux machines, you can [download a static binary](../download).
+- For 64-bit Linux machines, you can [download a static binary](download).
 
-- For other plaforms, the easiest way is to [use the docker image](../docker).
+- For other plaforms, the easiest way is to [use the docker image](docker).
 
-- If you want to hack in your own changes, you'll need to [build from source](../compile).
+- If you want to hack in your own changes, you'll need to [build from source](compile).
 
 <br>
 <div class="panel panel-warning">

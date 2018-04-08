@@ -1,9 +1,9 @@
 ---
-title: Running in Docker
-permalink: /docs/start/docker/
+title: Data Types
+permalink: /docs/types/
 ---
 
-# Running in Docker
+# Data Types
 
 <br>
 <div class="panel panel-info">

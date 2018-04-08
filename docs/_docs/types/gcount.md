@@ -1,6 +1,6 @@
 ---
 title: GCOUNT - Grow-Only Counter
-permalink: /docs/gcount/
+permalink: /docs/types/gcount/
 ---
 
 # `GCOUNT` - Grow-Only Counter

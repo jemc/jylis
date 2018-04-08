@@ -1,6 +1,6 @@
 ---
 title: Connecting with a Client
-permalink: /docs/connect/
+permalink: /docs/start/connect/
 ---
 
 # Connecting with a Client
@@ -15,7 +15,7 @@ One particularly convenient client for demonstration purposes is [`redis-cli`](h
 
 ## Sending Commands
 
-Once you've established a connection to the Jylis server, you can try to send your first command. We know that [`GCOUNT`](../gcount) is one of the [supported data types](../types), so let's just type that and see what happens.
+Once you've established a connection to the Jylis server, you can try to send your first command. We know that [`GCOUNT`](../../types/gcount) is one of the [supported data types](../../types), so let's just type that and see what happens.
 
 ```sh
 127.0.0.1:6379> GCOUNT
@@ -50,4 +50,4 @@ OK
 (integer) 25
 ```
 
-The example we worked through here was taken from [the documentation for the `GCOUNT`](../gcount#examples) data type. Every data type documentation page includes such examples, and working through them interactively in this way is a great way to get acquainted with those data types.
+The example we worked through here was taken from [the documentation for the `GCOUNT`](../../types/gcount#examples) data type. Every data type documentation page includes such examples, and working through them interactively in this way is a great way to get acquainted with those data types.

@@ -1,6 +1,6 @@
 ---
 title: Compiling from Source
-permalink: /docs/compile/
+permalink: /docs/start/compile/
 ---
 
 # Compiling from Source

@@ -1,6 +1,6 @@
 ---
 title: Download (for Linux)
-permalink: /docs/download/
+permalink: /docs/start/download/
 ---
 
 # Download (for Linux)

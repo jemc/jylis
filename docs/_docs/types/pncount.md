@@ -1,6 +1,6 @@
 ---
 title: PNCOUNT - Positive/Negative Counter
-permalink: /docs/pncount/
+permalink: /docs/types/pncount/
 ---
 
 # `PNCOUNT` - Positive/Negative Counter

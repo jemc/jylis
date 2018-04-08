@@ -1,6 +1,6 @@
 ---
 title: UJSON - Unordered JSON
-permalink: /docs/ujson/
+permalink: /docs/types/ujson/
 ---
 
 # `UJSON` - Unordered JSON (Nested Observed-Remove Maps and Sets)
