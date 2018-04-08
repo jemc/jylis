@@ -10,9 +10,15 @@ If you're here, you're likely interested in trying Jylis for yourself. There are
 
 - For 64-bit Linux machines, you can [download a static binary](download).
 
-- For other plaforms, the easiest way is to [use the docker image](docker).
+- For other plaforms, the easiest option is to [use the docker image](docker).
 
-- If you want to hack in your own changes, you'll need to [build from source](compile).
+- If you want to hack in your own changes, you'll need to [compile it from source](compile).
+
+After that, you'll likely want to [connect and try sending some commands](connect).
+
+## Next Steps
+
+Once you've got the basics down, you can read in-depth about [the data types](../types) that Jylis supports, and start thinking about how they might be used in your application.
 
 <br>
 <div class="panel panel-warning">
