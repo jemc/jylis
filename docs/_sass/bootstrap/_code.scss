@@ -15,9 +15,15 @@ samp {
 code {
   padding: 2px 4px;
   font-size: 90%;
+  font-weight: bold;
   color: $code-color;
   background-color: $code-bg;
   border-radius: $border-radius-base;
+}
+
+// Inline code (links)
+a code {
+  color: $link-color;
 }
 
 // User input typically entered via keyboard
