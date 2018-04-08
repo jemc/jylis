@@ -8,8 +8,9 @@
     {
       "title": "{{ p.title }}",
       "url": "{{ p.url | prepend: site.baseurl }}"
-
-    },
+    }
+    {% unless forloop.last %},{% endunless %}
   {% endfor %}
+  {% unless forloop.last %},{% endunless %}
 {% endfor %}
 ]
