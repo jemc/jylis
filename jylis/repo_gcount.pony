@@ -42,7 +42,7 @@ class RepoGCOUNT
   
   fun ref _delta_for(key: String): GCounter =>
     try _deltas(key)? else
-      let d = GCounter(_identity)
+      let d = GCounter(0)
       _deltas(key) = d
       d
     end

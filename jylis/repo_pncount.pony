@@ -44,7 +44,7 @@ class RepoPNCOUNT
   
   fun ref _delta_for(key: String): PNCounter =>
     try _deltas(key)? else
-      let d = PNCounter(_identity)
+      let d = PNCounter(0)
       _deltas(key) = d
       d
     end

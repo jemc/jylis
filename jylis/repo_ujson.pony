@@ -57,7 +57,7 @@ class RepoUJSON
   
   fun ref _delta_for(key: String): UJSON =>
     try _deltas(key)? else
-      let d = UJSON(_identity)
+      let d = UJSON(0)
       _deltas(key) = d
       d
     end
