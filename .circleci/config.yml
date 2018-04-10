@@ -25,7 +25,6 @@ jobs:
     machine: true
     steps:
       - checkout
-      - run: make ci-setup
       - run: make release
 
 workflows:
