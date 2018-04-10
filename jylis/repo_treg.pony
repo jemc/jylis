@@ -9,8 +9,8 @@ primitive RepoTREGHelp is HelpLeaf
     map("SET") = "key value timestamp"
 
 class RepoTREG
-  let _data:   Map[String, TReg[String]] = _data.create()
-  let _deltas: Map[String, TReg[String]] = _deltas.create()
+  let _data:   Map[String, TRegString] = _data.create()
+  let _deltas: Map[String, TRegString] = _deltas.create()
   
   new ref create(identity': U64) => None
   
@@ -34,13 +34,22 @@ class RepoTREG
   
   fun tag _timestamp(cmd: Iterator[String]): U64? => cmd.next()?.u64()?
   
-  fun ref converge(key: String, delta': Any box) => // TODO: more strict
-    try
-      let delta = delta' as TReg[String] box
-      try _data(key)?.converge(delta)
-      else _data(key) = TReg[String](delta.value(), delta.timestamp()) // TODO: delta.clone()
-      end
+  fun ref _data_for(key: String): TRegString =>
+    try _data(key)? else
+      let d = TRegString
+      _data(key) = d
+      d
     end
+  
+  fun ref _delta_for(key: String): TRegString =>
+    try _deltas(key)? else
+      let d = TRegString
+      _deltas(key) = d
+      d
+    end
+  
+  fun ref converge(key: String, delta': Any box) => // TODO: more strict
+    try _data_for(key).converge(delta' as TRegString box) end
   
   fun get(resp: Respond, key: String): Bool =>
     try
@@ -54,17 +63,6 @@ class RepoTREG
     false
   
   fun ref set(resp: Respond, key: String, value: String, timestamp: U64): Bool =>
-    let delta =
-      try _deltas(key)? else
-        let d = TReg[String](value, timestamp)
-        _deltas(key) = d
-        d
-      end
-    
-    try _data(key)?.update(value, timestamp, delta)
-    else _data(key) = TReg[String](value, timestamp)
-    end
-    
+    _data_for(key).update(value, timestamp, _delta_for(key))
     resp.ok()
-    
     true // TODO: update CRDT library so we can return false if nothing changed

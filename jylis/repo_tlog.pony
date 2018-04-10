@@ -51,14 +51,14 @@ class RepoTLOG
   
   fun ref _data_for(key: String): TLog[String] =>
     try _data(key)? else
-      let d = TLog[String](0)
+      let d = TLog[String]
       _data(key) = d
       d
     end
   
   fun ref _delta_for(key: String): TLog[String] =>
     try _deltas(key)? else
-      let d = TLog[String](0)
+      let d = TLog[String]
       _deltas(key) = d
       d
     end
