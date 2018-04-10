@@ -53,9 +53,15 @@ Returns a simple string reply of `OK`.
 
 ### `TRIM key count`
 
-Raise the cutoff timestamp of the log to retain at least `count` entries, by setting the cutoff timestamp to the timestamp of the entry at index `count - 1`in the log. Any entries with an earlier timestamp than the entry at that index will be discarded.
+Raise the cutoff timestamp of the log to retain at least `count` entries, by setting the cutoff timestamp to the timestamp of the entry at index `count - 1`in the log. Any entries with an earlier timestamp than the entry at that index will be discarded. If `count` is zero, this is the same as calling the `CLR` command.
 
 This is a useful command for keeping the size of the log near a particular count. It's always possible for the log to end up with a few more entries than the trimmed count, but it's still a useful way to manage retention and keep the size of the data structure from growing without bound.
+
+Returns a simple string reply of `OK`.
+
+### `CLR key`
+
+Raise the cutoff timestamp to be the timestamp of the latest entry plus one, such that all local entries in the log will be discarded due to having timestamps earlier than the cutoff timestamp. If there are no entries in the local log, this method will have no effect.
 
 Returns a simple string reply of `OK`.
 
