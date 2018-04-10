@@ -25,6 +25,7 @@ jobs:
     docker:
       - image: ponylang/ponyc:latest
     steps:
+      - setup_remote_docker
       - checkout
       - run: make ci-setup
       - run: make release
