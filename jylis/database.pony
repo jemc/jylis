@@ -15,6 +15,7 @@ class val Database
     // of repos, with some way of resolving conflicts that doesn't break things
     // for the user who has already started storing data in the repo?
     _map("TREG")    = RepoManager[RepoTREG,    RepoTREGHelp]   ("TREG",    identity)
+    _map("TLOG")    = RepoManager[RepoTLOG,    RepoTLOGHelp]   ("TLOG",    identity)
     _map("GCOUNT")  = RepoManager[RepoGCOUNT,  RepoGCOUNTHelp] ("GCOUNT",  identity)
     _map("PNCOUNT") = RepoManager[RepoPNCOUNT, RepoPNCOUNTHelp]("PNCOUNT", identity)
     _map("UJSON")   = RepoManager[RepoUJSON,   RepoUJSONHelp]  ("UJSON",   identity)
@@ -28,6 +29,7 @@ class val Database
         The first word of each command must be a data type.
         The following are valid data types (case sensitive):
           TREG    - Timestamped Register (Latest Write Wins)
+          TLOG    - Timestamped Log (Retain Latest Entries)
           GCOUNT  - Grow-Only Counter
           PNCOUNT - Positive/Negative Counter
           UJSON   - Unordered JSON (Nested Observed-Remove Maps and Sets)

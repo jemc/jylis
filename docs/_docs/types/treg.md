@@ -57,7 +57,7 @@ jylis> TREG GET mykey
 
 - Only a single value/timestamp pair is retained in the register at any time.
 
-- When comparing any two value/timestamp pairs `A` and `B`, the `A` pair takes precedence over the `B` pair if an only if:
+- When comparing any two value/timestamp pairs `A` and `B`, the `A` pair takes precedence over the `B` pair if and only if:
     - the timestamp for `A` is greater than that of `B`, ***OR***
     - the timestamps are the same, ***AND***
         - the *value* for `A` is greater than that of `B` (by sorting rules).
@@ -70,7 +70,7 @@ jylis> TREG GET mykey
 
     - If you're using clock times for the logical timestamps, you have to account for clock drift and recognize that distributed clocks will never be perfectly in sync. In other words, the needs of your application have to be flexible enough to still behave correctly enough when clock drift between nodes allows "older" writes to overwrite "newer" ones, up to the maximum amount of drift between any two clocks that are writing to the same register.
 
-- Because the lower timestamps are always discarded in favor of higher ones, accidentally updating with an inappropriately high timestamp is irreversible an irreversible mistake - you can't "turn back time".
+- Because the lower timestamps are always discarded in favor of higher ones, accidentally updating with an inappropriately high timestamp is an irreversible mistake - you can't "turn back time".
 
     - The value and the timestamp of the register can never be "cleared" back to a value of zero once the logical timestamp has been raised above zero, as the higher-timestamped value would always mask the zero-timestamped one.
 
