@@ -74,11 +74,41 @@ body {
     font-weight: bold;
   }
 }
-*[id]:before {
-  display: block;
-  content: " ";
-  visibility: hidden;
-}
+
 .navbar-form .has-feedback .form-control-feedback{
   top:10px
+}
+
+///
+// Fix position of markdown anchors relative to 75px top nav.
+// Note that h1 is intentionally omitted to avoid issues with
+// preventing clicks on the bottom links in the doc page list,
+// when that list is stacked on top of the markdown content on small screens.
+// h1 is left out because it is meant to appear only at the top of the markdown.
+
+h2[id]:before,
+h3[id]:before,
+h4[id]:before,
+h5[id]:before,
+h6[id]:before {
+  display: block;
+  content: " ";
+  margin-top: -75px;
+  height: 75px;
+  visibility: hidden;
+}
+
+///
+// Make markdown anchor links transparent until hovered
+
+.fa.fa-link {
+  opacity: 0.3;
+  -webkit-transition: opacity 0.5s;
+  transition: opacity 0.5s;
+  font-size: 80%;
+  margin-left: 0.25em;
+}
+
+.fa.fa-link:hover {
+  opacity: 1.0
 }
