@@ -101,6 +101,10 @@ jylis> TLOG GET chat
    2) (integer) 1523258158785
 2) 1) "jemc: feeling pretty good these days"
    2) (integer) 1523258152362
+jylis> TLOG CLR chat
+OK
+jylis> TLOG GET chat
+(empty list)
 ```
 
 ## Detailed Semantics

@@ -11,6 +11,7 @@ primitive RepoTLOGHelp is HelpLeaf
     map("CUTOFF") = "key"
     map("TRIMAT") = "key timestamp"
     map("TRIM")   = "key count"
+    map("CLR")    = "key"
 
 class RepoTLOG
   let _data:   Map[String, TLog[String]] = _data.create()
@@ -33,6 +34,7 @@ class RepoTLOG
     | "CUTOFF" => cutoff(r, _key(cmd)?)
     | "TRIMAT" => trimat(r, _key(cmd)?, _timestamp(cmd)?)
     | "TRIM"   => trim(r, _key(cmd)?, _count(cmd)?)
+    | "CLR"    => clr(r, _key(cmd)?)
     else error
     end
   
@@ -100,5 +102,10 @@ class RepoTLOG
   
   fun ref trim(resp: Respond, key: String, count: USize): Bool =>
     _data_for(key).trim(count, _delta_for(key))
+    resp.ok()
+    true // TODO: update CRDT library so we can return false if nothing changed
+  
+  fun ref clr(resp: Respond, key: String): Bool =>
+    _data_for(key).clear(_delta_for(key))
     resp.ok()
     true // TODO: update CRDT library so we can return false if nothing changed
