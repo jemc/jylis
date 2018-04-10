@@ -1,5 +1,12 @@
 version: 2
 jobs:
+  vs-ponyc-master:
+    docker:
+      - image: ponylang/ponyc:latest
+    steps:
+      - checkout
+      - run: make ci-setup
+      - run: make ci
   vs-ponyc-release:
     docker:
       - image: ponylang/ponyc:release
@@ -7,7 +14,7 @@ jobs:
       - checkout
       - run: make ci-setup
       - run: make ci
-  vs-ponyc-master:
+  vs-ponyc-master-2:
     docker:
       - image: ponylang/ponyc:latest
     steps:
@@ -35,5 +42,5 @@ workflows:
             branches:
               only: master
     jobs:
-      - vs-ponyc-master
+      - vs-ponyc-master-2
       - nightly-release
