@@ -39,7 +39,7 @@ var anchorForId = function (id) {
   var anchor = document.createElement("a");
   anchor.className = "header-link";
   anchor.href      = "#" + id;
-  anchor.innerHTML = "<i class=\"fa fa-link\"></i>";
+  anchor.innerHTML = "<i class=\"fa fa-leaf\"></i>";
   return anchor;
 };
 

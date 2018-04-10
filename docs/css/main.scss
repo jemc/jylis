@@ -99,16 +99,17 @@ h6[id]:before {
 }
 
 ///
-// Make markdown anchor links transparent until hovered
+// Make markdown anchor links green, transparent until hovered
 
-.fa.fa-link {
+a .fa.fa-leaf {
   opacity: 0.3;
   -webkit-transition: opacity 0.5s;
   transition: opacity 0.5s;
   font-size: 80%;
   margin-left: 0.25em;
+  color: #6e9652;
 }
 
-.fa.fa-link:hover {
+a .fa.fa-leaf:hover {
   opacity: 1.0
 }
