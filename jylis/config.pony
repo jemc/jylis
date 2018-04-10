@@ -54,7 +54,7 @@ primitive ConfigFromCLI
       error
     end
   
-  fun apply(env: Env): Config? =>
+  fun apply(env: Env, log_out: OutStream): Config? =>
     let cmd    = _parse(env)?
     let config = Config
     
@@ -77,10 +77,10 @@ primitive ConfigFromCLI
     
     config.log =
       match cmd.option("log-level").string()
-      | "error" => Log.create_err(env.out)
-      | "warn"  => Log.create_warn(env.out)
-      | "info"  => Log.create_info(env.out)
-      | "debug" => Log.create_fine(env.out)
+      | "error" => Log.create_err(log_out)
+      | "warn"  => Log.create_warn(log_out)
+      | "info"  => Log.create_info(log_out)
+      | "debug" => Log.create_fine(log_out)
       else
         env.out.print("Unknown log-level: " + cmd.option("log-level").string())
         error

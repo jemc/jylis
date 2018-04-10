@@ -4,10 +4,11 @@ use "resp"
 
 class val Database
   let _config: Config
+  let _system: System
   let _map: Map[String, RepoManagerAny] = _map.create()
   
-  new val create(config': Config) =>
-    _config = config'
+  new val create(config': Config, system': System) =>
+    (_config, _system) = (config', system')
     
     let identity = _config.addr.hash()
     // TODO: allow users to create their own keyspaces/repos with custom types,
@@ -19,6 +20,7 @@ class val Database
     _map("GCOUNT")  = RepoManager[RepoGCOUNT,  RepoGCOUNTHelp] ("GCOUNT",  identity)
     _map("PNCOUNT") = RepoManager[RepoPNCOUNT, RepoPNCOUNTHelp]("PNCOUNT", identity)
     _map("UJSON")   = RepoManager[RepoUJSON,   RepoUJSONHelp]  ("UJSON",   identity)
+    _map("SYSTEM")  = _system.repo()
   
   fun apply(resp: Respond, cmd: Array[String] val) =>
     try
@@ -33,6 +35,7 @@ class val Database
           GCOUNT  - Grow-Only Counter
           PNCOUNT - Positive/Negative Counter
           UJSON   - Unordered JSON (Nested Observed-Remove Maps and Sets)
+          SYSTEM  - (miscellaneous system-level operations)
         """)
     end
   
@@ -50,7 +53,7 @@ class val Database
   fun clean_shutdown(): Promise[None] =>
     """
     Return a promise that is fulfilled when all RepoManagers in the _map
-    have finished executing their owne clean_shutdown behaviour.
+    have finished executing their own clean_shutdown behaviour.
     """
     _config.log.info() and _config.log("database shutting down")
     let promises = Array[Promise[None]]

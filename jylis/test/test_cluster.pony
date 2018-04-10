@@ -94,9 +94,13 @@ class TestCluster is UnitTest
     let bar = _config(h, "6378", _addr("9998:bar"), [_addr("9999")])
     let baz = _config(h, "6377", _addr("9997:baz"), [_addr("9999")])
     
-    let foo_d = Database(foo)
-    let bar_d = Database(bar)
-    let baz_d = Database(baz)
+    let foo_y = System(foo)
+    let bar_y = System(bar)
+    let baz_y = System(baz)
+    
+    let foo_d = Database(foo, foo_y)
+    let bar_d = Database(bar, bar_y)
+    let baz_d = Database(baz, baz_y)
     
     let foo_s = Server(auth, foo, foo_d)
     let bar_s = Server(auth, bar, bar_d)

@@ -2,8 +2,10 @@ actor Main
   new create(env: Env) =>
     try
       let auth     = env.root as AmbientAuth
-      let config   = ConfigFromCLI(env)?
-      let database = Database(config)
+      let fork     = SystemLogFork(env.out)
+      let config   = ConfigFromCLI(env, fork)?
+      let system   = System(config).>fork_logs_from(fork)
+      let database = Database(config, system)
       let server   = Server(auth, config, database)
       let cluster  = Cluster(auth, config, database)
       Dispose(database, server, cluster).on_signal()
