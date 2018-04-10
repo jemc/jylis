@@ -2,7 +2,6 @@ actor Main
   new create(env: Env) =>
     try
       let auth     = env.root as AmbientAuth
-      let log      = Log.create_fine(env.out)
       let config   = ConfigFromCLI(env)?
       let database = Database(config)
       let server   = Server(auth, config, database)
