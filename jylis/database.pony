@@ -55,7 +55,7 @@ class val Database
     Return a promise that is fulfilled when all RepoManagers in the _map
     have finished executing their own clean_shutdown behaviour.
     """
-    _config.log.info() and _config.log("database shutting down")
+    _config.log.info() and _config.log.i("database shutting down")
     let promises = Array[Promise[None]]
     for r in _map.values() do
       let promise = Promise[None]

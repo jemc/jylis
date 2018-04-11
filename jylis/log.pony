@@ -8,29 +8,56 @@ primitive _LogOutStreamNone
   fun tag writev(data: ByteSeqIter) => None
 
 class val Log
-  let _log: Logger[String]
-  new val create_fine(out: OutStream) => _log = StringLogger(Fine, out)
-  new val create_info(out: OutStream) => _log = StringLogger(Info, out)
-  new val create_warn(out: OutStream) => _log = StringLogger(Warn, out)
-  new val create_err(out: OutStream) => _log = StringLogger(Error, out)
-  new val create_none() => _log = StringLogger(Error, _LogOutStreamNone)
+  let _addr: String
+  let _out: OutStream
+  let _level: LogLevel
   
-  fun fine(): Bool => _log(Fine)
-  fun info(): Bool => _log(Info)
-  fun warn(): Bool => _log(Warn)
-  fun err(): Bool => _log(Error)
+  new val create_debug(addr': Address, out': OutStream) =>
+    (_level, _addr, _out) = (Fine, addr'.string(), out')
   
-  fun apply(
-    a: Any box,
-    b: Any box = None,
-    c: Any box = None,
-    d: Any box = None)
+  new val create_info(addr': Address, out': OutStream) =>
+    (_level, _addr, _out) = (Info, addr'.string(), out')
+  
+  new val create_warn(addr': Address, out': OutStream) =>
+    (_level, _addr, _out) = (Warn, addr'.string(), out')
+  
+  new val create_err(addr': Address, out': OutStream) =>
+    (_level, _addr, _out) = (Error, addr'.string(), out')
+  
+  new val create_none() =>
+    (_addr, _level, _out) = ("", Error, _LogOutStreamNone)
+  
+  fun debug(): Bool => _level() <= Fine()
+  fun info(): Bool => _level() <= Info()
+  fun warn(): Bool => _level() <= Warn()
+  fun err(): Bool => _level() <= Error()
+  
+  fun d(string: String, loc: SourceLoc = __loc): Bool => _log('D', string, loc)
+  fun i(string: String, loc: SourceLoc = __loc): Bool => _log('I', string, loc)
+  fun w(string: String, loc: SourceLoc = __loc): Bool => _log('W', string, loc)
+  fun e(string: String, loc: SourceLoc = __loc): Bool => _log('E', string, loc)
+  
+  fun _log(level: U8, string: String, loc: SourceLoc): Bool =>
+    let buf = recover trn String(5 + _addr.size() + string.size()) end
+    buf
+      .> append(_addr)
+      .> push(' ') .> push('(') .> push(level) .> push(')') .> push(' ')
+      .> append(string)
+    _out.print(consume buf)
+    true
+  
+  fun inspect(
+    x1: Any box,
+    x2: Any box = None,
+    x3: Any box = None,
+    x4: Any box = None,
+    loc: SourceLoc = __loc)
     : Bool
   =>
     let out = recover trn String end
-    out.append(Inspect(a))
-    if b isnt None then out.>push(';').>push(' ').append(Inspect(b)) end
-    if c isnt None then out.>push(';').>push(' ').append(Inspect(c)) end
-    if d isnt None then out.>push(';').>push(' ').append(Inspect(d)) end
-    _log.log(consume out)
+    out.append(Inspect(x1))
+    if x2 isnt None then out.>push(';').>push(' ').append(Inspect(x2)) end
+    if x3 isnt None then out.>push(';').>push(' ').append(Inspect(x3)) end
+    if x4 isnt None then out.>push(';').>push(' ').append(Inspect(x4)) end
+    _log('D', consume out, loc)
     true

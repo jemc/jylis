@@ -83,7 +83,7 @@ class TestCluster is UnitTest
     config.addr           = addr
     config.seed_addrs     = consume seed_addrs
     config.heartbeat_time = _tick()
-    config.log            = Log.create_err(h.env.out)
+    config.log            = Log.create_err(addr, h.env.out)
     config
   
   fun apply(h: TestHelper)? =>

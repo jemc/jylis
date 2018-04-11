@@ -21,8 +21,8 @@ class iso ClusterNotify is TCPConnectionNotify
   
   fun ref auth_failed(conn: _Conn ref) =>
     if _passive
-    then _cluster._passive_error(conn, "misaligned framing header in protocol")
-    else _cluster._active_error(conn, "misaligned framing header in protocol")
+    then _cluster._passive_error(conn, "misaligned framing in protocol", "")
+    else _cluster._active_error(conn, "misaligned framing in protocol", "")
     end
   
   fun ref closed(conn: _Conn ref) =>
@@ -54,8 +54,8 @@ class iso ClusterNotify is TCPConnectionNotify
         end
       else
         if _passive
-        then _cluster._passive_error(conn, "invalid serialise signature")
-        else _cluster._active_error(conn, "invalid serialise signature")
+        then _cluster._passive_error(conn, "invalid serialise signature", "")
+        else _cluster._active_error(conn, "invalid serialise signature", "")
         end
         conn.dispose() // TODO: time delay? review protocol design and decide...
       end

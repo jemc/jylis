@@ -42,7 +42,7 @@ actor Cluster
     _heartbeat()
   
   be dispose() =>
-    _log.info() and _log("cluster listener shutting down")
+    _log.info() and _log.i("cluster listener shutting down")
     _listen.dispose()
     _heart.dispose()
     for conn in _actives.values() do conn.dispose() end
@@ -125,74 +125,74 @@ actor Cluster
     _sync_actives()
   
   be _listen_failed() =>
-    _log.err() and _log("cluster listener failed to listen")
+    _log.err() and _log.e("cluster listener failed to listen")
     dispose()
   
   be _listen_ready() => None
-    _log.info() and _log("cluster listener ready")
+    _log.info() and _log.i("cluster listener ready")
   
   be _passive_accepted(conn: _Conn tag) =>
-    _log.info() and _log("passive cluster connection accepted")
+    _log.info() and _log.i("passive cluster connection accepted")
     _passives.set(conn)
     _last_activity(conn) = _tick
   
   be _passive_initiated(conn: _Conn tag) =>
-    _log.info() and _log("passive cluster connection initiated")
+    _log.info() and _log.i("passive cluster connection initiated")
   
   be _active_connected(conn: _Conn tag) =>
-    _log.info() and _log("active cluster connection connected")
+    _log.info() and _log.i("active cluster connection connected")
     _last_activity(conn) = _tick
   
   be _active_initiated(conn: _Conn tag) =>
-    _log.info() and _log("active cluster connection initiated")
+    _log.info() and _log.i("active cluster connection initiated")
     _send(conn, MsgExchangeAddrs(_known_addrs))
   
   be _active_missed(conn: _Conn tag) =>
-    _log.warn() and _log("active cluster connection missed")
+    _log.warn() and _log.w("active cluster connection missed")
     _remove_active(conn)
   
   be _passive_lost(conn: _Conn tag) =>
-    _log.warn() and _log("passive cluster connection lost")
+    _log.warn() and _log.w("passive cluster connection lost")
     _remove_passive(conn)
   
   be _active_lost(conn: _Conn tag) =>
-    _log.warn() and _log("active cluster connection lost")
+    _log.warn() and _log.w("active cluster connection lost")
     _remove_active(conn)
   
-  be _passive_error(conn: _Conn tag, a: String, b: (String | None) = None) =>
-    _log.warn() and _log("passive cluster connection error", a, b)
+  be _passive_error(conn: _Conn tag, a: String, b: String) =>
+    _log.warn() and _log.w("passive cluster connection error: " + a + "; " + b)
     _remove_passive(conn)
   
-  be _active_error(conn: _Conn tag, a: String, b: (String | None) = None) =>
-    _log.warn() and _log("active cluster connection error", a, b)
+  be _active_error(conn: _Conn tag, a: String, b: String) =>
+    _log.warn() and _log.w("active cluster connection error: " + a + "; " + b)
     _remove_active(conn)
   
   be _passive_frame(conn: _Conn tag, data: Array[U8] val) =>
     try
       let msg = _serial.from_bytes[Msg](data)?
-      _log.fine() and _log("received", msg)
+      _log.debug() and _log.d("received" + msg.string())
       _passive_msg(conn, msg)
     else
-      _passive_error(conn, "invalid message on passive cluster connection")
+      _passive_error(conn, "invalid message on passive cluster connection", "")
     end
   
   be _active_frame(conn: _Conn tag, data: Array[U8] val) =>
     try
       let msg = _serial.from_bytes[Msg](data)?
-      _log.fine() and _log("received", msg)
+      _log.debug() and _log.d("received " + msg.string())
       _active_msg(conn, msg)
     else
-      _active_error(conn, "invalid message on active cluster connection")
+      _active_error(conn, "invalid message on active cluster connection", "")
     end
   
   fun ref _send(conn: _Conn tag, msg: Msg box) =>
-    _log.fine() and _log("sending", msg)
+    _log.debug() and _log.d("sending " + msg.string())
     try conn.write(_serial.to_bytes(msg)?)
-    else _log.err() and _log("failed to serialise message")
+    else _log.err() and _log.e("failed to serialise message")
     end
   
   be _broadcast_bytes(data: Array[U8] val) =>
-    _log.fine() and _log("broadcasting data")
+    _log.debug() and _log.d("broadcasting data")
     for conn in _actives.values() do conn.write(data) end
   
   fun tag broadcast_deltas(

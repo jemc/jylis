@@ -14,14 +14,14 @@ actor Server
     _listen = _Listen(auth', consume listen_notify, "", _config.port)
   
   be dispose() =>
-    _config.log.info() and _config.log("server listener shutting down")
+    _config.log.info() and _config.log.i("server listener shutting down")
     _listen.dispose()
     // TODO: shut down client connections, ideally waiting until
     // they no longer have any pending commands.
   
   be _listen_failed() =>
-    _config.log.err() and _config.log("server listener failed to listen")
+    _config.log.err() and _config.log.e("server listener failed to listen")
     dispose()
   
   be _listen_ready() => None
-    _config.log.info() and _config.log("server listener ready")
+    _config.log.info() and _config.log.i("server listener ready")
