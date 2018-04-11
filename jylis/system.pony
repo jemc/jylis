@@ -36,7 +36,9 @@ actor _System is RepoManagerAny
   // System private methods, meant for use only within the jylis server.
   // Generally, the purpose is to fill data that is read-only to the user.
   
-  be log(string: String) => _core.repo()._inslog(string, Time.millis())
+  be log(string: String) =>
+    _core.repo()._inslog(string, Time.millis())
+    _core.repo()._trimlog(_config.system_log_trim)
 
 actor SystemLogFork
   let _a: OutStream

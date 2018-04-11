@@ -3,11 +3,12 @@ use "random"
 use "time"
 
 class val Config
-  var port:           String         = "6379"
-  var addr:           Address        = Address.from_string("127.0.0.1:9999:")
-  var seed_addrs:     Array[Address] = []
-  var heartbeat_time: F64            = 10
-  var log:            Log            = Log.create_none()
+  var port:            String         = "6379"
+  var addr:            Address        = Address.from_string("127.0.0.1:9999:")
+  var seed_addrs:      Array[Address] = []
+  var heartbeat_time:  F64            = 10
+  var system_log_trim: USize          = 200
+  var log:             Log            = Log.create_none()
   
   fun ref normalize() =>
     // Force a random name if the addr.name is empty.
@@ -34,6 +35,10 @@ primitive ConfigFromCLI
       cli.OptionSpec.f64("heartbeat-time",
         "The number of seconds between heartbeats in the clustering protocol."
         where short' = 'T', default' = 10)
+      
+      cli.OptionSpec.u64("system-log-trim",
+        "The number of entries to retain in the distributed `SYSTEM GETLOG`."
+        where short' = 'T', default' = 200)
       
       cli.OptionSpec.string("log-level",
         "Maximum level of detail for logging (error, warn, info, or debug)."
@@ -74,6 +79,8 @@ primitive ConfigFromCLI
     config.seed_addrs = consume seed_addrs
     
     config.heartbeat_time = cmd.option("heartbeat-time").f64()
+    
+    config.system_log_trim = cmd.option("system-log-trim").u64().usize()
     
     config.log =
       match cmd.option("log-level").string()

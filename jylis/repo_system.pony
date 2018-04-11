@@ -54,3 +54,6 @@ class RepoSYSTEM
   
   fun ref _inslog(value: String, timestamp: U64) =>
     _log.write(value, timestamp, _log_delta)
+  
+  fun ref _trimlog(count: USize) =>
+    _log.trim(count)
