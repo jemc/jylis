@@ -165,7 +165,7 @@ actor Cluster
     _remove_passive(conn)
   
   be _active_lost(conn: _Conn tag) =>
-    _log.warn() and _log.w("active cluster connection lost: "
+    _log.warn() and _log.w("active cluster connection lost: " +
       try _find_active(conn)?.string() else "" end)
     
     _remove_active(conn)
