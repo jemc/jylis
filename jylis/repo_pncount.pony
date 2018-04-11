@@ -2,7 +2,7 @@ use "collections"
 use "crdt"
 use "resp"
 
-primitive RepoPNCOUNTHelp is HelpLeaf
+primitive RepoPNCOUNTHelp is HelpRepo
   fun datatype(): String => "PNCOUNT"
   fun commands(map: Map[String, String]) =>
     map("GET") = "key"

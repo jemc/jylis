@@ -2,7 +2,7 @@ use "collections"
 use "crdt"
 use "resp"
 
-primitive RepoUJSONHelp is HelpLeaf
+primitive RepoUJSONHelp is HelpRepo
   fun datatype(): String => "UJSON"
   fun commands(map: Map[String, String]) =>
     map("GET") = "key [key...]"

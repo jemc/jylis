@@ -6,8 +6,11 @@ primitive HelpRespond
     let prefix = "BADCOMMAND (could not parse command)\n"
     resp.err(prefix + help.clone().>rstrip())
 
-trait val HelpLeaf
+interface val HelpLeaf
   new val create()
+  fun apply(cmd: Iterator[String]): String
+
+trait val HelpRepo is HelpLeaf
   fun datatype(): String
   fun commands(map: Map[String, String])
   

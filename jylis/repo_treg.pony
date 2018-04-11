@@ -2,7 +2,7 @@ use "collections"
 use "crdt"
 use "resp"
 
-primitive RepoTREGHelp is HelpLeaf
+primitive RepoTREGHelp is HelpRepo
   fun datatype(): String => "TREG"
   fun commands(map: Map[String, String]) =>
     map("GET") = "key"

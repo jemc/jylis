@@ -2,7 +2,7 @@ use "collections"
 use "crdt"
 use "resp"
 
-primitive RepoGCOUNTHelp is HelpLeaf
+primitive RepoGCOUNTHelp is HelpRepo
   fun datatype(): String => "GCOUNT"
   fun commands(map: Map[String, String]) =>
     map("GET") = "key"
