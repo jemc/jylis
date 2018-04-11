@@ -49,8 +49,8 @@ class iso ClusterNotify is TCPConnectionNotify
       then
         _established = true
         if _passive
-        then _cluster._passive_initiated(conn)
-        else _cluster._active_initiated(conn)
+        then _cluster._passive_established(conn)
+        else _cluster._active_established(conn)
         end
       else
         if _passive

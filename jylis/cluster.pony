@@ -131,21 +131,15 @@ actor Cluster
   be _listen_ready() => None
     _log.info() and _log.i("cluster listener ready")
   
-  be _passive_accepted(conn: _Conn tag) =>
-    _log.info() and _log.i("passive cluster connection accepted")
+  be _passive_established(conn: _Conn tag) =>
+    _log.info() and _log.i("passive cluster connection established")
     _passives.set(conn)
     _last_activity(conn) = _tick
   
-  be _passive_initiated(conn: _Conn tag) =>
-    _log.info() and _log.i("passive cluster connection initiated")
-  
-  be _active_connected(conn: _Conn tag) =>
-    _log.info() and _log.i("active cluster connection connected")
-    _last_activity(conn) = _tick
-  
-  be _active_initiated(conn: _Conn tag) =>
-    _log.info() and _log.i("active cluster connection initiated")
+  be _active_established(conn: _Conn tag) =>
+    _log.info() and _log.i("active cluster connection established")
     _send(conn, MsgExchangeAddrs(_known_addrs))
+    _last_activity(conn) = _tick
   
   be _active_missed(conn: _Conn tag) =>
     _log.warn() and _log.w("active cluster connection missed")
