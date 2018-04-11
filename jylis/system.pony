@@ -14,53 +14,29 @@ class val System
 
 actor _System is RepoManagerAny
   let _config: Config
-  let _log: TLog[String] = TLog[String]
+  let _core: RepoManagerCore[RepoSYSTEM, RepoSYSTEMHelp]
   
-  new create(config': Config) => _config = config'
+  new create(config': Config) =>
+    _config = config'
+    _core   = _core.create("SYSTEM", _config.addr.hash())
   
-  be log(string: String) => _log.write(string, Time.millis())
+  be apply(resp: Respond, cmd: Array[String] val) =>
+    _core(resp, cmd)
   
-  be apply(resp: Respond, cmd': Array[String] val) =>
-    let cmd = cmd'.values()
-    try
-      cmd.next()? // discard first word; it was already read to route us here
-      match cmd.next()?
-      | "GETLOG" => _getlog(resp, _optcount(cmd))
-      else error
-      end
-    else
-      HelpRespond(resp,
-        """
-        The following are valid SYSTEM commands:
-          SYSTEM GETLOG [count]
-        """)
-    end
-  
-  fun tag _optcount(cmd: Iterator[String]): USize =>
-    try cmd.next()?.usize()? else -1 end
-  
-  fun ref _getlog(resp: Respond, count: USize): Bool =>
-    var total = _log.size().min(count)
-    resp.array_start(total)
-    for (value, timestamp) in _log.entries() do
-      if 0 == (total = total - 1) then break end
-      resp.array_start(2)
-      resp.string(value)
-      resp.u64(timestamp)
-    end
-    false
-  
-  be flush_deltas(fn: _SendDeltasFn) => // TODO: use actual deltas instead of full state
-    fn(("SYSTEM", [("LOG", _log)]))
+  be flush_deltas(fn: _SendDeltasFn) =>
+    _core.flush_deltas(fn)
   
   be converge_deltas(deltas: Array[(String, Any box)] val) =>
-    for (key, delta) in deltas.values() do
-      match key
-      | "LOG" => try _log.converge(delta as TLog[String] box) end
-      end
-    end
+    _core.converge_deltas(deltas)
   
-  be clean_shutdown(promise: Promise[None]) => promise(None) // TODO
+  be clean_shutdown(promise: Promise[None]) =>
+    _core.clean_shutdown(promise)
+  
+  ///
+  // System private methods, meant for use only within the jylis server.
+  // Generally, the purpose is to fill data that is read-only to the user.
+  
+  be log(string: String) => _core.repo()._inslog(string, Time.millis())
 
 actor SystemLogFork
   let _a: OutStream

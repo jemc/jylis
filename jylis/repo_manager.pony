@@ -15,7 +15,25 @@ interface tag RepoManagerAny
   be converge_deltas(deltas: Array[(String, Any box)] val)
   be clean_shutdown(promise: Promise[None])
 
-actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
+actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
+  let _core: RepoManagerCore[R, H]
+  
+  new create(name': String, identity': U64) =>
+    _core = _core.create(name', identity')
+  
+  be apply(resp: Respond, cmd: Array[String] val) =>
+    _core(resp, cmd)
+  
+  be flush_deltas(fn: _SendDeltasFn) =>
+    _core.flush_deltas(fn)
+  
+  be converge_deltas(deltas: Array[(String, Any box)] val) =>
+    _core.converge_deltas(deltas)
+  
+  be clean_shutdown(promise: Promise[None]) =>
+    _core.clean_shutdown(promise)
+
+class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
   let _name: String
   let _repo: R
   var _deltas_fn: (_SendDeltasFn | None) = None
@@ -25,7 +43,10 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
   new create(name': String, identity': U64) =>
     (_name, _repo) = (name', R(identity'))
   
-  be apply(resp: Respond, cmd: Array[String] val) =>
+  fun name(): String => _name
+  fun repo(): this->R => _repo
+  
+  fun ref apply(resp: Respond, cmd: Array[String] val) =>
     if _shutdown then
       resp.err("SHUTDOWN (server is shutting down, rejecting all requests)")
       // TODO: also terminate the client's TCP connection,
@@ -62,16 +83,16 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val]
       end
     end
   
-  be flush_deltas(fn: _SendDeltasFn) =>
+  fun ref flush_deltas(fn: _SendDeltasFn) =>
     _deltas_fn = fn
     if _repo.deltas_size() > 0 then
       fn((_name, _repo.flush_deltas()))
     end
   
-  be converge_deltas(deltas: Array[(String, Any box)] val) =>
+  fun ref converge_deltas(deltas: Array[(String, Any box)] val) =>
     for (k, d) in deltas.values() do _repo.converge(k, d) end
   
-  be clean_shutdown(promise: Promise[None]) =>
+  fun ref clean_shutdown(promise: Promise[None]) =>
     """
     When told to shut down, we do a few things:
       - set _shutdown flag to true so that we stop accepting requests.
