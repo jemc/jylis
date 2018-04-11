@@ -13,6 +13,29 @@
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   {% seo %}
 
+  <!-- Global site tag (gtag.js) - Google Analytics
+    
+    I have a lot of mixed feelings about doing this.
+
+    On the one hand, I am an advocate of privacy.
+
+    On the other hand, I need to be able to gauge interest in this project,
+    and for different facets of it, so I can appropriately allocate my
+    scarce time and effort.
+
+    If any concerned reader can offer a better solution for analytics
+    that will better protect privacy of users, please file an issue ticket 
+    or pull request and we can have an open discussion about it!
+  -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117322870-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-117322870-1');
+  </script>
+
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
   <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ "/feed.xml" | prepend: site.baseurl | prepend: site.url }}" />
 </head>
