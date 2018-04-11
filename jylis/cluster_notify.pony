@@ -49,7 +49,7 @@ class iso ClusterNotify is TCPConnectionNotify
       then
         _established = true
         if _passive
-        then _cluster._passive_established(conn)
+        then _cluster._passive_established(conn, _remote_addr(conn))
         else _cluster._active_established(conn)
         end
       else
@@ -66,3 +66,9 @@ class iso ClusterNotify is TCPConnectionNotify
       end
     end
     true
+  
+  fun tag _remote_addr(conn: _Conn ref): Address =>
+    (let remote_host, let remote_port) =
+      try conn.remote_address().name()? else ("", "") end
+    
+    Address(remote_host, remote_port, "")

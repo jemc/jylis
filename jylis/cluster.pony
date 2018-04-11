@@ -70,6 +70,16 @@ actor Cluster
       _actives(addr) = _Conn(_auth, consume notify, addr.host, addr.port)
     end
   
+  fun ref _find_active(conn: _Conn tag): Address? =>
+    """
+    Find the connect address for the given active connection reference.
+    Raises an error if the connection reference was not in the map.
+    """
+    for (addr, conn') in _actives.pairs() do
+      if conn is conn' then return addr end
+    end
+    error
+  
   fun ref _remove_passive(conn: _Conn tag) =>
     """
     Stop the given passive connection and remove it from our mappings.
@@ -85,12 +95,7 @@ actor Cluster
     Let it be created again later the next time _sync_actives is called.
     """
     conn.dispose()
-    for (addr, conn') in _actives.pairs() do
-      if conn is conn' then
-        try _actives.remove(addr)? end
-        return
-      end
-    end
+    try _actives.remove(_find_active(conn)?)? end
     try _last_activity.remove(conn)? end
   
   fun ref _remove_either(conn: _Conn tag) =>
@@ -135,18 +140,24 @@ actor Cluster
   be _listen_ready() => None
     _log.info() and _log.i("cluster listener ready")
   
-  be _passive_established(conn: _Conn tag) =>
-    _log.info() and _log.i("passive cluster connection established")
+  be _passive_established(conn: _Conn tag, remote_addr: Address) =>
+    _log.info() and _log.i("passive cluster connection established from: " +
+      remote_addr.string())
+    
     _passives.set(conn)
     _last_activity(conn) = _tick
   
   be _active_established(conn: _Conn tag) =>
-    _log.info() and _log.i("active cluster connection established")
+    _log.info() and _log.i("active cluster connection established to: " +
+      try _find_active(conn)?.string() else "" end)
+    
     _send(conn, MsgExchangeAddrs(_known_addrs))
     _last_activity(conn) = _tick
   
   be _active_missed(conn: _Conn tag) =>
-    _log.warn() and _log.w("active cluster connection missed")
+    _log.warn() and _log.w("active cluster connection missed: " +
+      try _find_active(conn)?.string() else "" end)
+    
     _remove_active(conn)
   
   be _passive_lost(conn: _Conn tag) =>
@@ -154,7 +165,9 @@ actor Cluster
     _remove_passive(conn)
   
   be _active_lost(conn: _Conn tag) =>
-    _log.warn() and _log.w("active cluster connection lost")
+    _log.warn() and _log.w("active cluster connection lost: "
+      try _find_active(conn)?.string() else "" end)
+    
     _remove_active(conn)
   
   be _passive_error(conn: _Conn tag, a: String, b: String) =>
