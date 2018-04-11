@@ -56,11 +56,15 @@ actor Cluster
     for addr in _actives.keys() do
       if _known_addrs.contains(addr) then continue end
       
+      _log.info() and _log.i("forgetting old address: " + addr.string())
+      
       try _actives.remove(addr)?._2.dispose() end
     end
     
     for addr in _known_addrs.values() do
       if (_my_addr == addr) or _actives.contains(addr) then continue end
+      
+      _log.info() and _log.i("connecting to address: " + addr.string())
       
       let notify = FramedNotify(ClusterNotify(this, _serial.signature()))
       _actives(addr) = _Conn(_auth, consume notify, addr.host, addr.port)
@@ -197,6 +201,22 @@ actor Cluster
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
     if _known_addrs.converge(received_addrs) then
+      // Find any other addrs that have the same host and port as we do.
+      // By our own assertion, they are outdated and need to be blacklisted.
+      let blacklist = Array[Address]
+      for addr in _known_addrs.values() do
+        if (addr.host == _my_addr.host)
+        and (addr.port == _my_addr.port)
+        and (addr.name != _my_addr.name)
+        then blacklist.push(addr)
+        end
+      end
+      for addr in blacklist.values() do
+        _log.info() and _log.i("blacklisting outdated address: " + addr.string())
+        _known_addrs.unset(addr)
+      end
+      
+      // Refresh our active connections based on these updated addresses.
       _sync_actives()
       
       // Also notify other nodes we're connected to of our updated addresses.
