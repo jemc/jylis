@@ -1,6 +1,7 @@
 use "collections"
 use "crdt"
 use "resp"
+use "time"
 
 primitive RepoSYSTEMHelp is HelpLeaf
   fun apply(cmd: Iterator[String]): String =>
@@ -37,6 +38,10 @@ class RepoSYSTEM
   fun tag _optcount(cmd: Iterator[String]): USize =>
     try cmd.next()?.usize()? else -1 end
   
+  fun ref _time_now_millis(): U64 =>
+    (let secs, let nano) = Time.now()
+    (secs.u64() * 1000) + (nano.u64() / 1000000)
+  
   fun ref getlog(resp: Respond, count: USize): Bool =>
     var total = _log.size().min(count)
     resp.array_start(total)
@@ -52,8 +57,8 @@ class RepoSYSTEM
   // System private methods, meant for use only within the jylis server.
   // Generally, the purpose is to fill data that is read-only to the user.
   
-  fun ref _inslog(value: String, timestamp: U64) =>
-    _log.write(value, timestamp, _log_delta)
+  fun ref _inslog(value: String) =>
+    _log.write(value, _time_now_millis(), _log_delta)
   
   fun ref _trimlog(count: USize) =>
     _log.trim(count)

@@ -1,6 +1,5 @@
 use "crdt"
 use "resp"
-use "time"
 use "promises"
 
 class val System
@@ -37,5 +36,5 @@ actor _System is RepoManagerAny
   
   be log(string': String) =>
     let string: String = _config.addr.string().>push(' ').>append(string')
-    _core.repo()._inslog(string, Time.millis())
+    _core.repo()._inslog(string)
     _core.repo()._trimlog(_config.system_log_trim)
