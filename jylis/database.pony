@@ -10,7 +10,7 @@ class val Database
   new val create(config': Config, system': System) =>
     (_config, _system) = (config', system')
     
-    let identity = _config.addr.hash()
+    let identity = _config.addr.hash64()
     // TODO: allow users to create their own keyspaces/repos with custom types,
     // noting that allowing this requires a CRDT data structure for this map
     // of repos, with some way of resolving conflicts that doesn't break things

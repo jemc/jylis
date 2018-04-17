@@ -20,10 +20,16 @@ class val Address is Equatable[Address val]
         (input, "", "")
       end
   
-  fun hash(): U64 =>
+  fun hash(): USize =>
     var h = host.hash()
     h = h xor (port.hash() + 0x9d9eec79 + (h << 6) + (h >> 2))
     h = h xor (name.hash() + 0x9d9eec79 + (h << 6) + (h >> 2))
+    h
+  
+  fun hash64(): U64 =>
+    var h = host.hash64()
+    h = h xor (port.hash64() + 0x9d9eec79 + (h << 6) + (h >> 2))
+    h = h xor (name.hash64() + 0x9d9eec79 + (h << 6) + (h >> 2))
     h
   
   fun eq(that: Address): Bool =>

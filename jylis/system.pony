@@ -18,7 +18,7 @@ actor _System is RepoManagerAny
   
   new create(config': Config) =>
     _config = config'
-    _core   = _core.create("SYSTEM", _config.addr.hash())
+    _core   = _core.create("SYSTEM", _config.addr.hash64())
   
   be apply(resp: Respond, cmd: Array[String] val) =>
     _core(resp, cmd)
