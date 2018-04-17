@@ -5,10 +5,9 @@ use "promises"
 
 class val System
   let _sys: _System
-  new val create(config': Config) => _sys = _System(config')
-  
-  fun log(string: String) => _sys.log(string)
-  fun fork_logs_from(fork: SystemLogFork) => fork(_sys)
+  new val create(config': Config) =>
+    _sys = _System(config')
+    config'.log.set_sys(_sys)
   
   fun repo(): RepoManagerAny => _sys
 
@@ -36,46 +35,7 @@ actor _System is RepoManagerAny
   // System private methods, meant for use only within the jylis server.
   // Generally, the purpose is to fill data that is read-only to the user.
   
-  be log(string: String) =>
+  be log(string': String) =>
+    let string: String = _config.addr.string().>push(' ').>append(string')
     _core.repo()._inslog(string, Time.millis())
     _core.repo()._trimlog(_config.system_log_trim)
-
-actor SystemLogFork
-  let _a: OutStream
-  var _sys: (_System | None) = None
-  
-  new create(a': OutStream) => _a = a'
-  
-  be apply(sys': _System) => _sys = sys'
-  
-  fun tag _string(data': ByteSeq): String =>
-    match data'
-    | let data: Array[U8] val => String.from_array(data)
-    | let data: String => data
-    end
-  
-  be print(data: ByteSeq) =>
-    _a.print(data)
-    try (_sys as _System).log(_string(data)) end
-  
-  be write(data: ByteSeq) =>
-    _a.write(data)
-    try (_sys as _System).log(_string(data)) end
-  
-  be printv(data: ByteSeqIter) =>
-    _a.printv(data)
-    try
-      let sys = _sys as _System
-      for bytes in data.values() do
-        sys.log(_string(bytes))
-      end
-    end
-  
-  be writev(data: ByteSeqIter) =>
-    _a.writev(data)
-    try
-      let sys = _sys as _System
-      for bytes in data.values() do
-        sys.log(_string(bytes))
-      end
-    end

@@ -8,42 +8,45 @@ primitive _LogOutStreamNone
   fun tag writev(data: ByteSeqIter) => None
 
 class val Log
-  let _addr: String
-  let _out: OutStream
   let _level: LogLevel
+  let _log: _Log
   
-  new val create_debug(addr': Address, out': OutStream) =>
-    (_level, _addr, _out) = (Fine, addr'.string(), out')
+  new val create_debug(out': OutStream) =>
+    (_level, _log) = (Fine, _Log(out'))
   
-  new val create_info(addr': Address, out': OutStream) =>
-    (_level, _addr, _out) = (Info, addr'.string(), out')
+  new val create_info(out': OutStream) =>
+    (_level, _log) = (Info, _Log(out'))
   
-  new val create_warn(addr': Address, out': OutStream) =>
-    (_level, _addr, _out) = (Warn, addr'.string(), out')
+  new val create_warn(out': OutStream) =>
+    (_level, _log) = (Warn, _Log(out'))
   
-  new val create_err(addr': Address, out': OutStream) =>
-    (_level, _addr, _out) = (Error, addr'.string(), out')
+  new val create_err(out': OutStream) =>
+    (_level, _log) = (Error, _Log(out'))
   
   new val create_none() =>
-    (_addr, _level, _out) = ("", Error, _LogOutStreamNone)
+    (_level, _log) = (Error, _Log(_LogOutStreamNone))
+  
+  fun set_sys(sys': _System) => _log.set_sys(sys')
   
   fun debug(): Bool => _level() <= Fine()
   fun info(): Bool => _level() <= Info()
   fun warn(): Bool => _level() <= Warn()
   fun err(): Bool => _level() <= Error()
   
-  fun d(string: String, loc: SourceLoc = __loc): Bool => _log('D', string, loc)
-  fun i(string: String, loc: SourceLoc = __loc): Bool => _log('I', string, loc)
-  fun w(string: String, loc: SourceLoc = __loc): Bool => _log('W', string, loc)
-  fun e(string: String, loc: SourceLoc = __loc): Bool => _log('E', string, loc)
+  fun d(string: String, loc: SourceLoc = __loc): Bool =>
+    _log('D', string, loc)
+    true
   
-  fun _log(level: U8, string: String, loc: SourceLoc): Bool =>
-    let buf = recover trn String(5 + _addr.size() + string.size()) end
-    buf
-      .> append(_addr)
-      .> push(' ') .> push('(') .> push(level) .> push(')') .> push(' ')
-      .> append(string)
-    _out.print(consume buf)
+  fun i(string: String, loc: SourceLoc = __loc): Bool =>
+    _log('I', string, loc)
+    true
+  
+  fun w(string: String, loc: SourceLoc = __loc): Bool =>
+    _log('W', string, loc)
+    true
+  
+  fun e(string: String, loc: SourceLoc = __loc): Bool =>
+    _log('E', string, loc)
     true
   
   fun inspect(
@@ -61,3 +64,21 @@ class val Log
     if x4 isnt None then out.>push(';').>push(' ').append(Inspect(x4)) end
     _log('D', consume out, loc)
     true
+
+actor _Log
+  let _out: OutStream
+  var _sys: (_System | None) = None
+  
+  new create(out': OutStream) => _out = out'
+  be set_sys(sys': _System) => _sys = sys'
+  
+  be apply(level: U8, string: String, loc: SourceLoc) =>
+    let buf = recover trn String(4 + string.size()) end
+    buf
+      .> push('(') .> push(level) .> push(')') .> push(' ')
+      .> append(string)
+    _print(consume buf)
+  
+  fun _print(string: String) =>
+    try (_sys as _System).log(string) end
+    _out.print(string)
