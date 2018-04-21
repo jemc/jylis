@@ -7,9 +7,8 @@ RUN apk add --update \
         libressl-dev pcre2-dev coreutils llvm${LLVM_VERSION}-dev
 
 # Install Pony compiler and Pony runtime.
-# TODO: use master branch when this branch has been merged
 ENV PONYC_GIT_URL https://github.com/ponylang/ponyc
-RUN git clone --branch feature/static --depth 1 ${PONYC_GIT_URL} /tmp/ponyc && \
+RUN git clone --depth 1 ${PONYC_GIT_URL} /tmp/ponyc && \
     cd /tmp/ponyc && \
     env CC=clang make default_pic=true install && \
     rm -rf /tmp/ponyc
