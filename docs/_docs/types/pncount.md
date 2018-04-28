@@ -34,15 +34,15 @@ Returns a simple string reply of `OK`.
 ## Examples
 
 ```sh
-jylis> GCOUNT GET mykey
+jylis> PNCOUNT GET mykey
 (integer) 0
-jylis> GCOUNT INC mykey 10
+jylis> PNCOUNT INC mykey 10
 OK
-jylis> GCOUNT GET mykey
+jylis> PNCOUNT GET mykey
 (integer) 10
-jylis> GCOUNT DEC mykey 15
+jylis> PNCOUNT DEC mykey 15
 OK
-jylis> GCOUNT GET mykey
+jylis> PNCOUNT GET mykey
 (integer) -5
 ```
 
