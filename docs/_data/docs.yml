@@ -10,6 +10,7 @@
   index: types
   docs:
   - treg
+  - tlog
   - gcount
   - pncount
   - ujson
