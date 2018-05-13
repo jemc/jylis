@@ -3,16 +3,25 @@ use crdt = "crdt"
 use "resp"
 
 class val System
-  let config: Config
-  let repo: SystemRepoManager
-  let log: Log
+  let config:  Config
+  let dispose: SystemDispose
+  let repo:    SystemRepoManager
+  let log:     Log
   
   new val create(config': Config) =>
-    config = config'
-    repo   = SystemRepoManager(config)
-    log    = config.log
-    
-    log.set_sys(repo)
+    config  = config'
+    dispose = SystemDispose
+    repo    = SystemRepoManager(config)
+    log     = config.log .> set_sys(repo)
+
+actor SystemDispose
+  var _dispose: (Dispose | None) = None
+  
+  be setup(database: Database, server: Server, cluster: Cluster) =>
+    _dispose = Dispose(database, server, cluster) .> on_signal()
+  
+  be apply() =>
+    try (_dispose as Dispose).dispose() end
 
 actor SystemRepoManager is RepoManagerAny
   let _config: Config

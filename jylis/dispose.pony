@@ -18,7 +18,7 @@ actor Dispose
       })
     end
   
-  be on_signal() =>
+  fun tag on_signal() =>
     """
     Register a signal handler for SIGINT and SIGTERM that will call dispose.
     """

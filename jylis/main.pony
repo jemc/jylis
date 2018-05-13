@@ -6,7 +6,7 @@ actor Main
       let database = Database(system)
       let server   = Server(auth, system, database)
       let cluster  = Cluster(auth, system, database)
-      Dispose(database, server, cluster).on_signal()
+      system.dispose.setup(database, server, cluster)
       
       env.out.print(Logo())
       env.out.print("advertises cluster address: " + system.config.addr.string())
