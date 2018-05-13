@@ -20,7 +20,7 @@ class val Database
     _map("GCOUNT")  = RepoManager[RepoGCOUNT,  RepoGCOUNTHelp] ("GCOUNT",  identity)
     _map("PNCOUNT") = RepoManager[RepoPNCOUNT, RepoPNCOUNTHelp]("PNCOUNT", identity)
     _map("UJSON")   = RepoManager[RepoUJSON,   RepoUJSONHelp]  ("UJSON",   identity)
-    _map("SYSTEM")  = _system.repo()
+    _map("SYSTEM")  = _system.repo
   
   fun apply(resp: Respond, cmd: Array[String] val) =>
     try

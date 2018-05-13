@@ -26,7 +26,7 @@ class val Log
   new val create_none() =>
     (_level, _log) = (Error, _Log(_LogOutStreamNone))
   
-  fun set_sys(sys': _System) => _log.set_sys(sys')
+  fun set_sys(sys': SystemRepoManager) => _log.set_sys(sys')
   
   fun debug(): Bool => _level() <= Fine()
   fun info(): Bool => _level() <= Info()
@@ -67,10 +67,10 @@ class val Log
 
 actor _Log
   let _out: OutStream
-  var _sys: (_System | None) = None
+  var _sys: (SystemRepoManager | None) = None
   
   new create(out': OutStream) => _out = out'
-  be set_sys(sys': _System) => _sys = sys'
+  be set_sys(sys': SystemRepoManager) => _sys = sys'
   
   be apply(level: U8, string: String, loc: SourceLoc) =>
     let buf =
@@ -81,7 +81,7 @@ actor _Log
       end
     
     if level != 'D' then // skip debug-level logs in distributed system log
-      try (_sys as _System).log(buf) end
+      try (_sys as SystemRepoManager).log(buf) end
     end
     
     _out.print(buf)

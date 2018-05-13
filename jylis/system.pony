@@ -3,20 +3,18 @@ use crdt = "crdt"
 use "resp"
 
 class val System
-  let _sys: _System
   let config: Config
+  let repo: SystemRepoManager
   let log: Log
   
   new val create(config': Config) =>
-    _sys   = _System(config')
     config = config'
+    repo   = SystemRepoManager(config)
     log    = config.log
     
-    log.set_sys(_sys)
-  
-  fun repo(): RepoManagerAny => _sys
+    log.set_sys(repo)
 
-actor _System is RepoManagerAny
+actor SystemRepoManager is RepoManagerAny
   let _config: Config
   let _core: RepoManagerCore[RepoSYSTEM, RepoSYSTEMHelp]
   
