@@ -17,8 +17,12 @@ actor Server
     // they no longer have any pending commands.
   
   be _listen_failed() =>
-    _system.log.err() and _system.log.e("server listener failed to listen")
+    _system.log.err() and _system.log.e(
+      "server listener failed to listen on port " + _system.config.port
+    )
     dispose()
   
   be _listen_ready() => None
-    _system.log.info() and _system.log.i("server listener ready")
+    _system.log.info() and _system.log.i(
+      "server listener ready on port " + _system.config.port
+    )

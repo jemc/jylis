@@ -135,11 +135,15 @@ actor Cluster
     _sync_actives()
   
   be _listen_failed() =>
-    _log.err() and _log.e("cluster listener failed to listen")
+    _log.err() and _log.e(
+      "cluster listener failed to listen on port " + _my_addr.port
+    )
     dispose()
   
   be _listen_ready() => None
-    _log.info() and _log.i("cluster listener ready")
+    _log.info() and _log.i(
+      "cluster listener ready with address " + _my_addr.string()
+    )
   
   be _passive_established(conn: _Conn tag, remote_addr: Address) =>
     _log.info() and _log.i("passive cluster connection established from: " +
