@@ -205,8 +205,8 @@ actor Cluster
     _log.debug() and _log.d("broadcasting data")
     for conn in _actives.values() do conn.writev(data) end
   
-  fun tag broadcast_deltas(deltas: (String, Tokens box)) =>
-    _broadcast_writev(MsgPushDeltas.to_wire(deltas._1, deltas._2))
+  fun tag broadcast_deltas(name: String, delta: Tokens box) =>
+    _broadcast_writev(MsgPushDeltas.to_wire(name, delta))
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
     if _known_addrs.converge(received_addrs) then

@@ -1,4 +1,4 @@
 use crdt = "crdt"
 
 interface val _SendDeltasFn
-  fun apply(deltas: (String, crdt.Tokens box))
+  fun apply(name: String, delta: crdt.Tokens box)

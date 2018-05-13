@@ -79,7 +79,7 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
       let fn = _deltas_fn as _SendDeltasFn
       let now = Time.millis()
       if (now - 500) >= _last_proactive then
-        fn((_name, _repo.flush_deltas()))
+        fn(_name, _repo.flush_deltas())
         _last_proactive = now
       end
     end
@@ -87,7 +87,7 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
   fun ref flush_deltas(fn: _SendDeltasFn) =>
     _deltas_fn = fn
     if not _repo.delta_empty() then
-      fn((_name, _repo.flush_deltas()))
+      fn(_name, _repo.flush_deltas())
     end
   
   fun ref converge_deltas(deltas: crdt.TokensIterator iso) =>

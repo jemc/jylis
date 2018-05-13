@@ -41,10 +41,7 @@ class val Database
     end
   
   fun flush_deltas(fn: _SendDeltasFn) =>
-    let out: Array[(String, crdt.Tokens box)] = []
-    var deltas_size: USize = 0
-    
-    for (name, repo) in _map.pairs() do
+    for repo in _map.values() do
       repo.flush_deltas(fn)
     end
   
