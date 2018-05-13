@@ -73,12 +73,15 @@ actor _Log
   be set_sys(sys': _System) => _sys = sys'
   
   be apply(level: U8, string: String, loc: SourceLoc) =>
-    let buf = recover trn String(4 + string.size()) end
-    buf
-      .> push('(') .> push(level) .> push(')') .> push(' ')
-      .> append(string)
-    _print(consume buf)
-  
-  fun _print(string: String) =>
-    try (_sys as _System).log(string) end
-    _out.print(string)
+    let buf =
+      recover val
+        String(4 + string.size())
+          .> push('(') .> push(level) .> push(')') .> push(' ')
+          .> append(string)
+      end
+    
+    if level != 'D' then // skip debug-level logs in distributed system log
+      try (_sys as _System).log(buf) end
+    end
+    
+    _out.print(buf)
