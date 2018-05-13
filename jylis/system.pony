@@ -1,6 +1,6 @@
-use "crdt"
-use "resp"
 use "promises"
+use crdt = "crdt"
+use "resp"
 
 class val System
   let _sys: _System
@@ -24,8 +24,8 @@ actor _System is RepoManagerAny
   be flush_deltas(fn: _SendDeltasFn) =>
     _core.flush_deltas(fn)
   
-  be converge_deltas(deltas: Array[(String, Any box)] val) =>
-    _core.converge_deltas(deltas)
+  be converge_deltas(deltas: crdt.TokensIterator iso) =>
+    _core.converge_deltas(consume deltas)
   
   be clean_shutdown(promise: Promise[None]) =>
     _core.clean_shutdown(promise)

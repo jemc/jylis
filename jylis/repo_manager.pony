@@ -1,18 +1,19 @@
 use "time"
 use "promises"
+use crdt = "crdt"
 use "resp"
 
 interface RepoAny
   new ref create(identity': U64)
   fun ref apply(r: Respond, cmd: Iterator[String]): Bool?
-  fun ref deltas_size(): USize
-  fun ref flush_deltas(): Array[(String, Any box)] box
-  fun ref converge(key: String, delta': Any box)
+  fun ref delta_empty(): Bool
+  fun ref flush_deltas(): crdt.Tokens
+  fun ref converge(tokens: crdt.TokensIterator)?
 
 interface tag RepoManagerAny
   be apply(resp: Respond, cmd: Array[String] val)
   be flush_deltas(fn: _SendDeltasFn)
-  be converge_deltas(deltas: Array[(String, Any box)] val)
+  be converge_deltas(deltas: crdt.TokensIterator iso)
   be clean_shutdown(promise: Promise[None])
 
 actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
@@ -27,8 +28,8 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
   be flush_deltas(fn: _SendDeltasFn) =>
     _core.flush_deltas(fn)
   
-  be converge_deltas(deltas: Array[(String, Any box)] val) =>
-    _core.converge_deltas(deltas)
+  be converge_deltas(deltas: crdt.TokensIterator iso) =>
+    _core.converge_deltas(consume deltas)
   
   be clean_shutdown(promise: Promise[None]) =>
     _core.clean_shutdown(promise)
@@ -85,12 +86,15 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
   
   fun ref flush_deltas(fn: _SendDeltasFn) =>
     _deltas_fn = fn
-    if _repo.deltas_size() > 0 then
+    if not _repo.delta_empty() then
       fn((_name, _repo.flush_deltas()))
     end
   
-  fun ref converge_deltas(deltas: Array[(String, Any box)] val) =>
-    for (k, d) in deltas.values() do _repo.converge(k, d) end
+  fun ref converge_deltas(deltas: crdt.TokensIterator iso) =>
+    try
+      _repo.converge(consume deltas)?
+      // TODO: print error when deltas fail to parse
+    end
   
   fun ref clean_shutdown(promise: Promise[None]) =>
     """

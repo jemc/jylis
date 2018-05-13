@@ -1,5 +1,6 @@
 use "collections"
 use "crdt"
+use "resp"
 
 actor Cluster
   let _auth: AmbientAuth // TODO: de-escalate to NetAuth
@@ -208,9 +209,12 @@ actor Cluster
   
   fun tag broadcast_deltas(
     serial: _Serialise,
-    deltas: (String, Array[(String, Any box)] box))
+    deltas: (String, Tokens box))
   =>
-    try _broadcast_bytes(serial.to_bytes(MsgPushDeltas(deltas))?) end
+    let resp: ResponseWriter = ResponseWriter
+    DatabaseCodecOut(resp, deltas._2.iterator())
+    let msg = MsgPushDeltas((deltas._1, resp.buffer.done()))
+    try _broadcast_bytes(serial.to_bytes(msg)?) end
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
     if _known_addrs.converge(received_addrs) then
@@ -248,7 +252,7 @@ actor Cluster
       _converge_addrs(msg.known_addrs)
       _send(conn, MsgPong)
     | let msg: MsgPushDeltas =>
-      _database.converge_deltas(msg.deltas)
+      _database.converge_deltas(msg.deltas._1, DatabaseCodecIn(msg.deltas._2))
       _send(conn, MsgPong)
     else
       _passive_error(conn, "unhandled cluster message", msg'.string())

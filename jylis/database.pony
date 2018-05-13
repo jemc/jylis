@@ -1,5 +1,6 @@
 use "collections"
 use "promises"
+use crdt = "crdt"
 use "resp"
 
 class val Database
@@ -40,15 +41,15 @@ class val Database
     end
   
   fun flush_deltas(fn: _SendDeltasFn) =>
-    let out: Array[(String, Array[(String, Any box)] box)] = []
+    let out: Array[(String, crdt.Tokens box)] = []
     var deltas_size: USize = 0
     
     for (name, repo) in _map.pairs() do
       repo.flush_deltas(fn)
     end
   
-  fun converge_deltas(deltas: (String, Array[(String, Any box)] val)) =>
-    try _map(deltas._1)?.converge_deltas(deltas._2) end
+  fun converge_deltas(name: String, deltas: crdt.TokensIterator iso) =>
+    try _map(name)?.converge_deltas(consume deltas) end
   
   fun clean_shutdown(): Promise[None] =>
     """

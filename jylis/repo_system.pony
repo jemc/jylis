@@ -18,16 +18,14 @@ class RepoSYSTEM
   
   new create(identity': U64) => _identity = identity'
   
-  fun ref deltas_size(): USize => 1
-  fun ref flush_deltas(): Array[(String, Any box)] box =>
-    let out = Array[(String, Any box)](deltas_size())
-    out.push(("_log", _log_delta = _log_delta.create()))
-    out
+  fun ref delta_empty(): Bool => _log_delta.is_empty()
+  fun ref flush_deltas(): Tokens =>
+    // TODO: allow for other fields besides just log.
+    Tokens .> from(_log_delta = _log_delta.create())
   
-  fun ref converge(key: String, delta': Any box) => // TODO: more strict
-    match key
-    | "_log" => try _log.converge(delta' as TLog[String] box) end
-    end
+  fun ref converge(tokens: TokensIterator)? =>
+    // TODO: allow for other fields besides just log.
+    _log.converge(_log_delta.create() .> from_tokens(tokens)?)
   
   fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?

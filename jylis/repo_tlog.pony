@@ -14,17 +14,15 @@ primitive RepoTLOGHelp is HelpRepo
     map("CLR")    = "key"
 
 class RepoTLOG
-  let _data:   Map[String, TLog[String]] = _data.create()
-  let _deltas: Map[String, TLog[String]] = _deltas.create()
+  let _data:  CKeyspace[String, TLog[String]]
+  var _delta: CKeyspace[String, TLog[String]] = _delta.create(0)
   
-  new ref create(identity': U64) => None
+  new create(identity: U64) => _data = _data.create(identity)
   
-  fun ref deltas_size(): USize => _deltas.size()
-  fun ref flush_deltas(): Array[(String, Any box)] box =>
-    let out = Array[(String, Any box)](_deltas.size())
-    for (k, d) in _deltas.pairs() do out.push((k, d)) end
-    _deltas.clear()
-    out
+  fun ref delta_empty(): Bool => _delta.is_empty()
+  fun ref flush_deltas(): Tokens => Tokens .> from(_delta = _delta.create(0))
+  fun ref converge(tokens: TokensIterator)? =>
+    _data.converge(_delta.create(0) .> from_tokens(tokens)?)
   
   fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?
@@ -49,23 +47,6 @@ class RepoTLOG
   fun tag _opt_count(cmd: Iterator[String]): USize =>
     try cmd.next()?.usize()? else -1 end
   
-  fun ref _data_for(key: String): TLog[String] =>
-    try _data(key)? else
-      let d = TLog[String]
-      _data(key) = d
-      d
-    end
-  
-  fun ref _delta_for(key: String): TLog[String] =>
-    try _deltas(key)? else
-      let d = TLog[String]
-      _deltas(key) = d
-      d
-    end
-  
-  fun ref converge(key: String, delta': Any box) => // TODO: more strict
-    try _data_for(key).converge(delta' as TLog[String] box) end
-  
   fun get(resp: Respond, key: String, count: USize): Bool =>
     try
       let log   = _data(key)?
@@ -83,7 +64,7 @@ class RepoTLOG
     false
   
   fun ref ins(resp: Respond, key: String, value: String, timestamp: U64): Bool =>
-    _data_for(key).write(value, timestamp, _delta_for(key))
+    _data.at(key).write(value, timestamp, _delta.at(key))
     resp.ok()
     true // TODO: update CRDT library so we can return false if nothing changed
   
@@ -96,16 +77,16 @@ class RepoTLOG
     false
   
   fun ref trimat(resp: Respond, key: String, timestamp: U64): Bool =>
-    _data_for(key).raise_cutoff(timestamp, _delta_for(key))
+    _data.at(key).raise_cutoff(timestamp, _delta.at(key))
     resp.ok()
     true // TODO: update CRDT library so we can return false if nothing changed
   
   fun ref trim(resp: Respond, key: String, count: USize): Bool =>
-    _data_for(key).trim(count, _delta_for(key))
+    _data.at(key).trim(count, _delta.at(key))
     resp.ok()
     true // TODO: update CRDT library so we can return false if nothing changed
   
   fun ref clr(resp: Respond, key: String): Bool =>
-    _data_for(key).clear(_delta_for(key))
+    _data.at(key).clear(_delta.at(key))
     resp.ok()
     true // TODO: update CRDT library so we can return false if nothing changed

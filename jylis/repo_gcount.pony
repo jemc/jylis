@@ -9,18 +9,15 @@ primitive RepoGCOUNTHelp is HelpRepo
     map("INC") = "key value"
 
 class RepoGCOUNT
-  let _identity: U64
-  let _data:   Map[String, GCounter] = _data.create()
-  let _deltas: Map[String, GCounter] = _deltas.create()
+  let _data:  CKeyspace[String, GCounter]
+  var _delta: CKeyspace[String, GCounter] = _delta.create(0)
   
-  new create(identity': U64) => _identity = identity'
+  new create(identity: U64) => _data = _data.create(identity)
   
-  fun ref deltas_size(): USize => _deltas.size()
-  fun ref flush_deltas(): Array[(String, Any box)] box =>
-    let out = Array[(String, Any box)](_deltas.size())
-    for (k, d) in _deltas.pairs() do out.push((k, d)) end
-    _deltas.clear()
-    out
+  fun ref delta_empty(): Bool => _delta.is_empty()
+  fun ref flush_deltas(): Tokens => Tokens .> from(_delta = _delta.create(0))
+  fun ref converge(tokens: TokensIterator)? =>
+    _data.converge(_delta.create(0) .> from_tokens(tokens)?)
   
   fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?
@@ -33,28 +30,11 @@ class RepoGCOUNT
   
   fun tag _value(cmd: Iterator[String]): U64? => cmd.next()?.u64()?
   
-  fun ref _data_for(key: String): GCounter =>
-    try _data(key)? else
-      let d = GCounter(_identity)
-      _data(key) = d
-      d
-    end
-  
-  fun ref _delta_for(key: String): GCounter =>
-    try _deltas(key)? else
-      let d = GCounter(0)
-      _deltas(key) = d
-      d
-    end
-  
-  fun ref converge(key: String, delta': Any box) => // TODO: more strict
-    try _data_for(key).converge(delta' as GCounter box) end
-  
   fun get(resp: Respond, key: String): Bool =>
     resp.u64(try _data(key)?.value() else 0 end)
     false
   
   fun ref inc(resp: Respond, key: String, value: U64): Bool =>
-    _data_for(key).increment(value, _delta_for(key))
+    _data.at(key).increment(value, _delta.at(key))
     resp.ok()
     true // TODO: update CRDT library so we can return false if nothing changed

@@ -3,7 +3,7 @@ use "resp" // TODO: fix ponyc and remove this line
 use resp = "resp"
 
 primitive DatabaseCodecOut
-  fun apply(out: Respond, iter: crdt.TokensIterator) =>
+  fun apply(out: ResponseWriter, iter: crdt.TokensIterator) =>
     try
       while true do
         match iter.next[Any val]()?
@@ -15,6 +15,24 @@ primitive DatabaseCodecOut
         else               out.err("BADTOKEN - unknown CRDT token")
         end
       end
+    end
+
+primitive DatabaseCodecIn
+  fun apply(input: Array[ByteSeq] val): crdt.TokensIterator iso^ =>
+    recover
+      let iter =
+        try
+          let errors = Array[String]
+          let parser = ResponseParser({ref(err) => errors.push(err) } ref)
+          for bytes in input.values() do
+            parser.append(bytes)
+            if errors.size() > 0 then error end
+          end
+          parser.next_tokens()?
+        else
+          Array[DataToken].values()
+        end
+      DatabaseCodecInIterator(iter)
     end
 
 class DatabaseCodecInIterator is crdt.TokensIterator
