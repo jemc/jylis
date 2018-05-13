@@ -8,7 +8,6 @@ actor Cluster
   let _config: Config
   let _my_addr: Address
   let _database: Database
-  let _serial: _Serialise
   let _listen: _Listen
   let _heart: Heart
   let _deltas_fn: _SendDeltasFn
@@ -29,13 +28,12 @@ actor Cluster
     
     _log = _config.log
     _my_addr = _config.addr
-    _serial = _Serialise(auth')
     
-    let listen_notify = ClusterListenNotify(this, _serial.signature())
+    let listen_notify = ClusterListenNotify(this)
     _listen = _Listen(auth', consume listen_notify, "", _my_addr.port)
     
     _heart = Heart(this, (_config.heartbeat_time * 1_000_000_000).u64())
-    _deltas_fn = this~broadcast_deltas(_serial)
+    _deltas_fn = this~broadcast_deltas()
     
     _known_addrs.set(_my_addr)
     _known_addrs.union(_config.seed_addrs.values())
@@ -67,7 +65,7 @@ actor Cluster
       
       _log.info() and _log.i("connecting to address: " + addr.string())
       
-      let notify = FramedNotify(ClusterNotify(this, _serial.signature()))
+      let notify = FramedNotify(ClusterNotify(this))
       _actives(addr) = _Conn(_auth, consume notify, addr.host, addr.port)
     end
   
@@ -217,10 +215,7 @@ actor Cluster
     _log.debug() and _log.d("broadcasting data")
     for conn in _actives.values() do _writev(conn, data) end
   
-  fun tag broadcast_deltas(
-    serial: _Serialise,
-    deltas: (String, Tokens box))
-  =>
+  fun tag broadcast_deltas(deltas: (String, Tokens box)) =>
     _broadcast_writev(MsgPushDeltas.to_wire(deltas._1, deltas._2))
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>

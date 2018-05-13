@@ -2,19 +2,19 @@ use "net"
 
 class iso ClusterNotify is TCPConnectionNotify
   let _cluster: Cluster
-  let _signature: Array[U8] val
   var _passive: Bool = false
   var _established: Bool = false
   
-  new iso create(cluster': Cluster, signature': Array[U8] val) =>
-    (_cluster, _signature) = (cluster', signature')
+  new iso create(cluster': Cluster) =>
+    _cluster = cluster'
   
   fun ref accepted(conn: _Conn ref) =>
     _passive = true
+    _cluster._passive_established(conn, _remote_addr(conn))
   
   fun ref connected(conn: _Conn ref) =>
     _passive = false
-    conn.write(_signature)
+    _cluster._active_established(conn)
   
   fun ref connect_failed(conn: _Conn ref) =>
     _cluster._active_missed(conn)
@@ -35,35 +35,9 @@ class iso ClusterNotify is TCPConnectionNotify
   fun ref unthrottled(conn: _Conn ref) => None // TODO
   
   fun ref received(conn: _Conn ref, data: Array[U8] val, times: USize): Bool =>
-    if not _established then
-      if _passive then conn.write(_signature) end
-      
-      if (_signature.size() == data.size()) and
-        for (idx, byte) in data.pairs() do
-          try if _signature(idx)? != byte then error end
-          else break false
-          end
-          true
-        else false
-        end
-      then
-        _established = true
-        if _passive
-        then _cluster._passive_established(conn, _remote_addr(conn))
-        else _cluster._active_established(conn)
-        end
-      else
-        if _passive
-        then _cluster._passive_error(conn, "invalid serialise signature", "")
-        else _cluster._active_error(conn, "invalid serialise signature", "")
-        end
-        conn.dispose() // TODO: time delay? review protocol design and decide...
-      end
-    else
-      if _passive
-      then _cluster._passive_frame(conn, consume data)
-      else _cluster._active_frame(conn, consume data)
-      end
+    if _passive
+    then _cluster._passive_frame(conn, consume data)
+    else _cluster._active_frame(conn, consume data)
     end
     true
   
