@@ -202,7 +202,7 @@ actor Cluster
     conn.writev(data)
   
   be _broadcast_writev(data: Array[ByteSeq] val) =>
-    _log.debug() and _log.d("broadcasting data")
+    _log.debug() and _log.d("broadcasting " + Inspect(data))
     for conn in _actives.values() do conn.writev(data) end
   
   fun tag broadcast_deltas(name: String, delta: Tokens box) =>
