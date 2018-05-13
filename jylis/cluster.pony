@@ -182,7 +182,7 @@ actor Cluster
   be _passive_frame(conn: _Conn tag, data: Array[U8] val) =>
     let iter = DatabaseCodecIn([data])
     try
-      _log.debug() and _log.d("received " + Inspect(data))
+      _log.debug() and _log.d("received " + Inspect(String.from_array(data)))
       _passive_msg(conn, consume iter)?
     else
       _passive_error(conn, "invalid message on passive cluster connection", "")
@@ -191,7 +191,7 @@ actor Cluster
   be _active_frame(conn: _Conn tag, data: Array[U8] val) =>
     let iter = DatabaseCodecIn([data])
     try
-      _log.debug() and _log.d("received " + Inspect(data))
+      _log.debug() and _log.d("received " + Inspect(String.from_array(data)))
       _active_msg(conn, consume iter)?
     else
       _active_error(conn, "invalid message on active cluster connection", "")
