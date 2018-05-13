@@ -225,6 +225,8 @@ actor Cluster
         _known_addrs.unset(addr)
       end
       
+      // TODO: Do a clean exit if our own address has been blacklisted?
+      
       // Refresh our active connections based on these updated addresses.
       _sync_actives()
       
