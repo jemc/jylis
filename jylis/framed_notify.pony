@@ -49,17 +49,15 @@ class iso FramedNotify is TCPConnectionNotify
   
   fun ref sent(conn: _Conn ref, data: ByteSeq): ByteSeq =>
     conn.write_final(Framing.write_header(data.size()))
-    conn.write_final(data)
     // TODO: call _notify.sent?
-    ""
+    data
   
   fun ref sentv(conn: _Conn ref, array: ByteSeqIter): ByteSeqIter =>
-    for data in array.values() do
-      conn.write_final(Framing.write_header(data.size()))
-      conn.write_final(data)
-    end
+    var size: USize = 0
+    for data in array.values() do size = size + data.size() end
+    conn.write_final(Framing.write_header(size))
     // TODO: call _notify.sentv?
-    []
+    array
   
   fun ref expect(conn: _Conn ref, qty: USize): USize =>
     // Disregard the requested expect - just reassert our own current choice.

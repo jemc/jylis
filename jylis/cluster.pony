@@ -180,7 +180,7 @@ actor Cluster
     _remove_active(conn)
   
   be _passive_frame(conn: _Conn tag, data: Array[U8] val) =>
-    let iter = DatabaseCodecIn([data]) // TODO: get to this point from FramedNotify without having copied into a single array frame first
+    let iter = DatabaseCodecIn([data])
     try
       _log.debug() and _log.d("received " + Inspect(data))
       _passive_msg(conn, consume iter)?
@@ -189,7 +189,7 @@ actor Cluster
     end
   
   be _active_frame(conn: _Conn tag, data: Array[U8] val) =>
-    let iter = DatabaseCodecIn([data]) // TODO: get to this point from FramedNotify without having copied into a single array frame first
+    let iter = DatabaseCodecIn([data])
     try
       _log.debug() and _log.d("received " + Inspect(data))
       _active_msg(conn, consume iter)?
@@ -197,24 +197,13 @@ actor Cluster
       _active_error(conn, "invalid message on active cluster connection", "")
     end
   
-  fun tag _writev(conn: _Conn tag, data: Array[ByteSeq] val) =>
-    // TODO: fix or remove FramedNotify and do a real writev here:
-    let buf = recover Array[U8] end
-    for bytes' in data.values() do
-      match bytes'
-      | let bytes: Array[U8] val => buf.append(bytes)
-      | let bytes: String val    => buf.append(bytes.array())
-      end
-    end
-    conn.write(consume buf)
-  
   fun ref _send(conn: _Conn tag, data: Array[ByteSeq] val) =>
     _log.debug() and _log.d("sending " + Inspect(data))
-    _writev(conn, data)
+    conn.writev(data)
   
   be _broadcast_writev(data: Array[ByteSeq] val) =>
     _log.debug() and _log.d("broadcasting data")
-    for conn in _actives.values() do _writev(conn, data) end
+    for conn in _actives.values() do conn.writev(data) end
   
   fun tag broadcast_deltas(deltas: (String, Tokens box)) =>
     _broadcast_writev(MsgPushDeltas.to_wire(deltas._1, deltas._2))
