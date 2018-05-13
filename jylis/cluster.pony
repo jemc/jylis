@@ -250,7 +250,6 @@ actor Cluster
     | let msg: MsgExchangeAddrs =>
       let known_addrs = msg.from_wire(consume rest)?
       _converge_addrs(known_addrs)
-      
       _send(conn, MsgExchangeAddrs.to_wire(_known_addrs))
     | let msg: MsgAnnounceAddrs =>
       let known_addrs = msg.from_wire(consume rest)?
