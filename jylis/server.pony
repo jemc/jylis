@@ -20,7 +20,7 @@ actor Server
     _system.log.err() and _system.log.e(
       "server listener failed to listen on port " + _system.config.port
     )
-    dispose()
+    _system.dispose()
   
   be _listen_ready() => None
     _system.log.info() and _system.log.i(

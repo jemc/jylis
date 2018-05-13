@@ -138,7 +138,7 @@ actor Cluster
     _log.err() and _log.e(
       "cluster listener failed to listen on port " + _my_addr.port
     )
-    dispose()
+    _system.dispose()
   
   be _listen_ready() => None
     _log.info() and _log.i(
