@@ -1,6 +1,6 @@
 use "collections"
 use "crdt"
-use "resp"
+use "inspect"
 
 actor Cluster
   let _auth: AmbientAuth // TODO: de-escalate to NetAuth
@@ -123,8 +123,9 @@ actor Cluster
     
     // On every third tick, announce our addresses to other nodes.
     if (_tick % 3) == 0 then
+      let data = MsgAnnounceAddrs.to_wire(_known_addrs)
       for conn in _actives.values() do
-        _send(conn, MsgAnnounceAddrs(_known_addrs))
+        _send(conn, data)
       end
     end
     
@@ -152,7 +153,7 @@ actor Cluster
     _log.info() and _log.i("active cluster connection established to: " +
       try _find_active(conn)?.string() else "" end)
     
-    _send(conn, MsgExchangeAddrs(_known_addrs))
+    _send(conn, MsgExchangeAddrs.to_wire(_known_addrs))
     _last_activity(conn) = _tick
   
   be _active_missed(conn: _Conn tag) =>
@@ -180,41 +181,47 @@ actor Cluster
     _remove_active(conn)
   
   be _passive_frame(conn: _Conn tag, data: Array[U8] val) =>
+    let iter = DatabaseCodecIn([data]) // TODO: get to this point from FramedNotify without having copied into a single array frame first
     try
-      let msg = _serial.from_bytes[Msg](data)?
-      _log.debug() and _log.d("received" + msg.string())
-      _passive_msg(conn, msg)
+      _log.debug() and _log.d("received " + Inspect(data))
+      _passive_msg(conn, consume iter)?
     else
       _passive_error(conn, "invalid message on passive cluster connection", "")
     end
   
   be _active_frame(conn: _Conn tag, data: Array[U8] val) =>
+    let iter = DatabaseCodecIn([data]) // TODO: get to this point from FramedNotify without having copied into a single array frame first
     try
-      let msg = _serial.from_bytes[Msg](data)?
-      _log.debug() and _log.d("received " + msg.string())
-      _active_msg(conn, msg)
+      _log.debug() and _log.d("received " + Inspect(data))
+      _active_msg(conn, consume iter)?
     else
       _active_error(conn, "invalid message on active cluster connection", "")
     end
   
-  fun ref _send(conn: _Conn tag, msg: Msg box) =>
-    _log.debug() and _log.d("sending " + msg.string())
-    try conn.write(_serial.to_bytes(msg)?)
-    else _log.err() and _log.e("failed to serialise message")
+  fun tag _writev(conn: _Conn tag, data: Array[ByteSeq] val) =>
+    // TODO: fix or remove FramedNotify and do a real writev here:
+    let buf = recover Array[U8] end
+    for bytes' in data.values() do
+      match bytes'
+      | let bytes: Array[U8] val => buf.append(bytes)
+      | let bytes: String val    => buf.append(bytes.array())
+      end
     end
+    conn.write(consume buf)
   
-  be _broadcast_bytes(data: Array[U8] val) =>
+  fun ref _send(conn: _Conn tag, data: Array[ByteSeq] val) =>
+    _log.debug() and _log.d("sending " + Inspect(data))
+    _writev(conn, data)
+  
+  be _broadcast_writev(data: Array[ByteSeq] val) =>
     _log.debug() and _log.d("broadcasting data")
-    for conn in _actives.values() do conn.write(data) end
+    for conn in _actives.values() do _writev(conn, data) end
   
   fun tag broadcast_deltas(
     serial: _Serialise,
     deltas: (String, Tokens box))
   =>
-    let resp: ResponseWriter = ResponseWriter
-    DatabaseCodecOut(resp, deltas._2.iterator())
-    let msg = MsgPushDeltas((deltas._1, resp.buffer.done()))
-    try _broadcast_bytes(serial.to_bytes(msg)?) end
+    _broadcast_writev(MsgPushDeltas.to_wire(deltas._1, deltas._2))
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
     if _known_addrs.converge(received_addrs) then
@@ -237,33 +244,41 @@ actor Cluster
       _sync_actives()
       
       // Also notify other nodes we're connected to of our updated addresses.
+      let data = MsgExchangeAddrs.to_wire(_known_addrs)
       for conn in _actives.values() do
-        _send(conn, MsgExchangeAddrs(_known_addrs))
+        _send(conn, data)
       end
     end
   
-  fun ref _passive_msg(conn: _Conn tag, msg': Msg) =>
+  fun ref _passive_msg(conn: _Conn tag, iter: DatabaseCodecInIterator iso)? =>
     _last_activity(conn) = _tick
+    (let msg', let rest) = Msg.from_wire(consume iter)?
     match msg'
     | let msg: MsgExchangeAddrs =>
-      _converge_addrs(msg.known_addrs)
-      _send(conn, MsgExchangeAddrs(_known_addrs))
+      let known_addrs = msg.from_wire(consume rest)?
+      _converge_addrs(known_addrs)
+      
+      _send(conn, MsgExchangeAddrs.to_wire(_known_addrs))
     | let msg: MsgAnnounceAddrs =>
-      _converge_addrs(msg.known_addrs)
-      _send(conn, MsgPong)
+      let known_addrs = msg.from_wire(consume rest)?
+      _converge_addrs(known_addrs)
+      _send(conn, MsgPong.to_wire())
     | let msg: MsgPushDeltas =>
-      _database.converge_deltas(msg.deltas._1, DatabaseCodecIn(msg.deltas._2))
-      _send(conn, MsgPong)
+      (let name, let rest') = msg.from_wire(consume rest)?
+      _database.converge_deltas(name, consume rest')
+      _send(conn, MsgPong.to_wire())
     else
-      _passive_error(conn, "unhandled cluster message", msg'.string())
+      _passive_error(conn, "unhandled cluster message", msg'.name())
     end
   
-  fun ref _active_msg(conn: _Conn tag, msg': Msg) =>
+  fun ref _active_msg(conn: _Conn tag, iter: DatabaseCodecInIterator iso)? =>
     _last_activity(conn) = _tick
+    (let msg', let rest) = Msg.from_wire(consume iter)?
     match msg'
     | let msg: MsgPong => None
     | let msg: MsgExchangeAddrs =>
-      _converge_addrs(msg.known_addrs)
+      let known_addrs = msg.from_wire(consume rest)?
+      _converge_addrs(known_addrs)
     else
-      _active_error(conn, "unhandled cluster message", msg'.string())
+      _active_error(conn, "unhandled cluster message", msg'.name())
     end

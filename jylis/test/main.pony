@@ -8,4 +8,5 @@ actor Main is TestList
     test(TestAddress)
     test(TestCluster)
     test(TestFraming)
+    test(TestMsg)
     test(TestNameGenerator)
