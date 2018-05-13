@@ -2,14 +2,13 @@ actor Main
   new create(env: Env) =>
     try
       let auth     = env.root as AmbientAuth
-      let config   = ConfigFromCLI(env, env.err)?
-      let system   = System(config)
-      let database = Database(config, system)
-      let server   = Server(auth, config, database)
-      let cluster  = Cluster(auth, config, database)
+      let system   = System(ConfigFromCLI(env, env.err)?)
+      let database = Database(system)
+      let server   = Server(auth, system, database)
+      let cluster  = Cluster(auth, system, database)
       Dispose(database, server, cluster).on_signal()
       
       env.out.print(Logo())
-      env.out.print("advertises cluster address: " + config.addr.string())
-      env.out.print("serves commands on port:    " + config.port)
+      env.out.print("advertises cluster address: " + system.config.addr.string())
+      env.out.print("serves commands on port:    " + system.config.port)
     end

@@ -4,14 +4,13 @@ use crdt = "crdt"
 use "resp"
 
 class val Database
-  let _config: Config
   let _system: System
   let _map: Map[String, RepoManagerAny] = _map.create()
   
-  new val create(config': Config, system': System) =>
-    (_config, _system) = (config', system')
+  new val create(system': System) =>
+    _system = system'
     
-    let identity = _config.addr.hash64()
+    let identity = _system.config.addr.hash64()
     // TODO: allow users to create their own keyspaces/repos with custom types,
     // noting that allowing this requires a CRDT data structure for this map
     // of repos, with some way of resolving conflicts that doesn't break things
@@ -53,7 +52,7 @@ class val Database
     Return a promise that is fulfilled when all RepoManagers in the _map
     have finished executing their own clean_shutdown behaviour.
     """
-    _config.log.info() and _config.log.i("database shutting down")
+    _system.log.info() and _system.log.i("database shutting down")
     let promises = Array[Promise[None]]
     for r in _map.values() do
       let promise = Promise[None]

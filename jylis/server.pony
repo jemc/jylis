@@ -1,27 +1,24 @@
 actor Server
-  let _config: Config
+  let _system: System
   let _database: Database
   let _listen: _Listen
   
-  new create(
-    auth': AmbientAuth,
-    config': Config,
-    database': Database)
-  =>
-    (_config, _database) = (config', database')
+  new create(auth': AmbientAuth, system': System, database': Database) =>
+    (_system, _database) = (system', database')
     
+    // TODO: Allow a configurable listen IP / interface instead of "".
     let listen_notify = ServerListenNotify(this, _database)
-    _listen = _Listen(auth', consume listen_notify, "", _config.port)
+    _listen = _Listen(auth', consume listen_notify, "", _system.config.port)
   
   be dispose() =>
-    _config.log.info() and _config.log.i("server listener shutting down")
+    _system.log.info() and _system.log.i("server listener shutting down")
     _listen.dispose()
     // TODO: shut down client connections, ideally waiting until
     // they no longer have any pending commands.
   
   be _listen_failed() =>
-    _config.log.err() and _config.log.e("server listener failed to listen")
+    _system.log.err() and _system.log.e("server listener failed to listen")
     dispose()
   
   be _listen_ready() => None
-    _config.log.info() and _config.log.i("server listener ready")
+    _system.log.info() and _system.log.i("server listener ready")

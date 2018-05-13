@@ -6,7 +6,7 @@ use "inspect"
 actor Cluster
   let _auth: NetAuth
   let _log: Log
-  let _config: Config
+  let _system: System
   let _my_addr: Address
   let _database: Database
   let _listen: _Listen
@@ -20,24 +20,24 @@ actor Cluster
   
   new create(
     auth': AmbientAuth,
-    config': Config,
+    config': System,
     database': Database)
   =>
     _auth = NetAuth(auth')
-    _config = config'
+    _system = config'
     _database = database'
     
-    _log = _config.log
-    _my_addr = _config.addr
+    _log = _system.log
+    _my_addr = _system.config.addr
     
     let listen_notify = ClusterListenNotify(this)
     _listen = _Listen(auth', consume listen_notify, "", _my_addr.port)
     
-    _heart = Heart(this, (_config.heartbeat_time * 1_000_000_000).u64())
+    _heart = Heart(this, (_system.config.heartbeat_time * 1_000_000_000).u64())
     _deltas_fn = this~broadcast_deltas()
     
     _known_addrs.set(_my_addr)
-    _known_addrs.union(_config.seed_addrs.values())
+    _known_addrs.union(_system.config.seed_addrs.values())
     
     _heartbeat()
   

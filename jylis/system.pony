@@ -4,9 +4,15 @@ use "resp"
 
 class val System
   let _sys: _System
+  let config: Config
+  let log: Log
+  
   new val create(config': Config) =>
-    _sys = _System(config')
-    config'.log.set_sys(_sys)
+    _sys   = _System(config')
+    config = config'
+    log    = config.log
+    
+    log.set_sys(_sys)
   
   fun repo(): RepoManagerAny => _sys
 
