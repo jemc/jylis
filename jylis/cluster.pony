@@ -225,7 +225,13 @@ actor Cluster
         _known_addrs.unset(addr)
       end
       
-      // TODO: Do a clean exit if our own address has been blacklisted?
+      // Shut down the process if our own address has been blacklisted.
+      if not _known_addrs.contains(_my_addr) then
+        _log.err() and _log.e("can't continue due to being blacklisted")
+        _log.info() and _log.i("this node must be run under a different name")
+        _system.dispose()
+        return
+      end
       
       // Refresh our active connections based on these updated addresses.
       _sync_actives()
