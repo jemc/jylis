@@ -83,7 +83,7 @@ class RepoUJSON
     true // TODO: update CRDT library so we can return false if nothing changed
   
   fun ref clr(resp: Respond, key: String, path: Array[String] val): Bool =>
-    try _data(key)?.clear(path, _delta_for(key)).string() end
+    try _data(key)?.clear_at(path, _delta_for(key)).string() end
     resp.ok()
     true // TODO: update CRDT library so we can return false if nothing changed
   
