@@ -34,7 +34,7 @@ primitive ConfigFromCLI
       
       cli.OptionSpec.f64("heartbeat-time",
         "The number of seconds between heartbeats in the clustering protocol."
-        where short' = 'T', default' = 10)
+        where short' = 'H', default' = 10)
       
       cli.OptionSpec.u64("system-log-trim",
         "The number of entries to retain in the distributed `SYSTEM GETLOG`."
