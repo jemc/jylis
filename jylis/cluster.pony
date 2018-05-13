@@ -1,9 +1,10 @@
 use "collections"
+use "net"
 use "crdt"
 use "inspect"
 
 actor Cluster
-  let _auth: AmbientAuth // TODO: de-escalate to NetAuth
+  let _auth: NetAuth
   let _log: Log
   let _config: Config
   let _my_addr: Address
@@ -22,7 +23,7 @@ actor Cluster
     config': Config,
     database': Database)
   =>
-    _auth = auth'
+    _auth = NetAuth(auth')
     _config = config'
     _database = database'
     
