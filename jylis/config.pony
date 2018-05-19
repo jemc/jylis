@@ -5,7 +5,7 @@ use "files"
 
 class val Config
   var port:            String            = "6379"
-  var addr:            Address           = Address.from_string("127.0.0.1:9999:")
+  var addr:            Address           = Address.from_string("127.0.0.1:9779")
   var seed_addrs:      Array[Address]    = []
   var disk_dir:        (FilePath | None) = None
   var heartbeat_time:  F64               = 10
@@ -24,7 +24,7 @@ primitive ConfigFromCLI
     let spec = cli.CommandSpec.leaf("jylis", "", [
       cli.OptionSpec.string("addr",
         "The host:port:name to be advertised to other clustering nodes."
-        where short' = 'a', default' = "127.0.0.1:9999:")
+        where short' = 'a', default' = "127.0.0.1:9720:")
       
       cli.OptionSpec.string("port",
         "The port for accepting commands over RESP-protocol connections."

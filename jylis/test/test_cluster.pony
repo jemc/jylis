@@ -28,9 +28,9 @@ class TestCluster is UnitTest
     h.long_test((10 * _tick() * 1_000_000_000).u64())
     let auth = h.env.root as AmbientAuth
     
-    let foo = _new_system(h, "6379", _addr("9999:foo"))
-    let bar = _new_system(h, "6378", _addr("9998:bar"), [_addr("9999")])
-    let baz = _new_system(h, "6377", _addr("9997:baz"), [_addr("9999")])
+    let foo = _new_system(h, "6379", _addr("9779:foo"))
+    let bar = _new_system(h, "6378", _addr("9778:bar"), [_addr("9779")])
+    let baz = _new_system(h, "6377", _addr("9777:baz"), [_addr("9779")])
     
     let foo_d = Database(foo)
     let bar_d = Database(bar)
