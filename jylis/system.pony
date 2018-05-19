@@ -13,15 +13,20 @@ class val System
     dispose = SystemDispose
     repo    = SystemRepoManager(config)
     log     = config.log .> set_sys(repo)
+    
+    // Set up disk persistence (if applicable) or shut down if it failed.
+    try config.disk.setup(log)? else dispose() end
 
 actor SystemDispose
   var _dispose: (Dispose | None) = None
+  var _dispose_when_ready: Bool = false
   
   be setup(database: Database, server: Server, cluster: Cluster) =>
     _dispose = Dispose(database, server, cluster) .> on_signal()
+    if _dispose_when_ready then apply() end
   
   be apply() =>
-    try (_dispose as Dispose).dispose() end
+    try (_dispose as Dispose).dispose() else _dispose_when_ready = true end
 
 actor SystemRepoManager is RepoManagerAny
   let _config: Config

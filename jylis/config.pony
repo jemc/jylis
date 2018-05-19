@@ -1,11 +1,13 @@
 use cli = "cli"
 use "random"
 use "time"
+use "files"
 
 class val Config
   var port:            String         = "6379"
   var addr:            Address        = Address.from_string("127.0.0.1:9999:")
   var seed_addrs:      Array[Address] = []
+  var disk:            DiskAny        = DiskNone
   var heartbeat_time:  F64            = 10
   var system_log_trim: USize          = 200
   var log:             Log            = Log.create_none()
@@ -31,6 +33,10 @@ primitive ConfigFromCLI
       cli.OptionSpec.string("seed-addrs",
         "A space-separated list of the host:port:name for other known nodes."
         where short' = 's', default' = "")
+      
+      cli.OptionSpec.string("disk-dir",
+        "The disk directory in which to write files, if persistence is desired."
+        where short' = 'D', default' = "")
       
       cli.OptionSpec.f64("heartbeat-time",
         "The number of seconds between heartbeats in the clustering protocol."
@@ -60,6 +66,7 @@ primitive ConfigFromCLI
     end
   
   fun apply(env: Env, log_out: OutStream): Config? =>
+    let auth   = env.root as AmbientAuth
     let cmd    = _parse(env)?
     let config = Config
     
@@ -77,6 +84,11 @@ primitive ConfigFromCLI
       seed_addrs.push(Address.from_string(seed_str))
     end
     config.seed_addrs = consume seed_addrs
+    
+    let disk_dir = cmd.option("disk-dir").string()
+    if disk_dir != "" then
+      try config.disk = Disk(FilePath(auth, disk_dir)?) end
+    end
     
     config.heartbeat_time = cmd.option("heartbeat-time").f64()
     
