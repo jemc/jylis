@@ -3,7 +3,12 @@ use "resp" // TODO: fix ponyc and remove this line
 use resp = "resp"
 
 primitive DatabaseCodecOut
-  fun apply(out: ResponseWriter, iter: crdt.TokensIterator) =>
+  fun apply(iter: crdt.TokensIterator): Array[ByteSeq] val =>
+    let out: ResponseWriter = ResponseWriter
+    into(out, iter)
+    out.buffer.done()
+  
+  fun into(out: ResponseWriter, iter: crdt.TokensIterator) =>
     try
       while true do
         match iter.next[Any val]()?

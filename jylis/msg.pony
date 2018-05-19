@@ -48,7 +48,7 @@ primitive MsgExchangeAddrs is MsgAny
     let resp: ResponseWriter = ResponseWriter
     let tokens = Tokens .> from(known_addrs)
     Msg._to_wire(this, resp)
-    DatabaseCodecOut(resp, tokens.iterator())
+    DatabaseCodecOut.into(resp, tokens.iterator())
     resp.buffer.done()
 
 primitive MsgAnnounceAddrs is MsgAny
@@ -61,7 +61,7 @@ primitive MsgAnnounceAddrs is MsgAny
     let resp: ResponseWriter = ResponseWriter
     let tokens = Tokens .> from(known_addrs)
     Msg._to_wire(this, resp)
-    DatabaseCodecOut(resp, tokens.iterator())
+    DatabaseCodecOut.into(resp, tokens.iterator())
     resp.buffer.done()
 
 primitive MsgPushDeltas is MsgAny
@@ -75,10 +75,10 @@ primitive MsgPushDeltas is MsgAny
     let name' = iter.next[String]()?
     (name', consume iter)
   
-  fun to_wire(name': String, tokens: Tokens box): Array[ByteSeq] val =>
+  fun to_wire(name': String): Array[ByteSeq] iso^ =>
     let resp: ResponseWriter = ResponseWriter
     Msg._to_wire(this, resp)
     resp.array_start(2)
     resp.string(name')
-    DatabaseCodecOut(resp, tokens.iterator())
+    // Expect the actual deltas to be encoded next and appended into the array.
     resp.buffer.done()

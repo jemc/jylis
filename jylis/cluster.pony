@@ -217,16 +217,17 @@ actor Cluster
     for conn in _actives.values() do conn.writev(data) end
   
   fun tag broadcast_deltas(name: String, delta: Tokens box) =>
-    _broadcast_writev(MsgPushDeltas.to_wire(name, delta))
+    let data = DatabaseCodecOut(delta.iterator())
+    _broadcast_writev(MsgPushDeltas.to_wire(name) .> append(data))
   
   fun tag broadcast_deltas_with_disk(
     disk: Disk,
     name: String,
     delta: Tokens box)
   =>
-    let data = MsgPushDeltas.to_wire(name, delta)
-    _broadcast_writev(data)
+    let data = DatabaseCodecOut(delta.iterator())
     disk.append_writev(name, data)
+    _broadcast_writev(MsgPushDeltas.to_wire(name) .> append(data))
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
     if _known_addrs.converge(received_addrs) then
