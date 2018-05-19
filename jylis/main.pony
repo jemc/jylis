@@ -5,8 +5,9 @@ actor Main
       let auth     = env.root as AmbientAuth
       let system   = System(ConfigFromCLI(env, env.err)?)
       let database = Database(system)
-      let disk     = DiskSetup(system, database)
+      let disk     = DiskSetup(system)
       let server   = Server(auth, system, database)
-      let cluster  = Cluster(auth, system, database)
-      system.dispose.setup(database, server, cluster)
+      let cluster  = Cluster(auth, system, database, disk)
+      system.dispose.setup(database, disk, server, cluster)
+      system.dispose()
     end

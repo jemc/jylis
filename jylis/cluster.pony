@@ -9,6 +9,7 @@ actor Cluster
   let _system: System
   let _my_addr: Address
   let _database: Database
+  let _disk: DiskAny
   let _listen: _Listen
   let _heart: Heart
   let _deltas_fn: _SendDeltasFn
@@ -21,20 +22,26 @@ actor Cluster
   new create(
     auth': AmbientAuth,
     config': System,
-    database': Database)
+    database': Database,
+    disk': DiskAny)
   =>
-    _auth = NetAuth(auth')
-    _system = config'
+    _auth     = NetAuth(auth')
+    _system   = config'
     _database = database'
+    _disk     = disk'
     
-    _log = _system.log
+    _log     = _system.log
     _my_addr = _system.config.addr
     
     let listen_notify = ClusterListenNotify(this)
     _listen = _Listen(auth', consume listen_notify, "", _my_addr.port)
     
     _heart = Heart(this, (_system.config.heartbeat_time * 1_000_000_000).u64())
-    _deltas_fn = this~broadcast_deltas()
+    
+    _deltas_fn =
+      try  this~broadcast_deltas_with_disk(_disk as Disk)
+      else this~broadcast_deltas()
+      end
     
     _known_addrs.set(_my_addr)
     _known_addrs.union(_system.config.seed_addrs.values())
@@ -187,7 +194,7 @@ actor Cluster
     let iter = DatabaseCodecIn([data])
     try
       _log.debug() and _log.d("received " + Inspect(String.from_array(data)))
-      _passive_msg(conn, consume iter)?
+      _passive_msg(conn, consume iter, data)?
     else
       _passive_error(conn, "invalid message on passive cluster connection", "")
     end
@@ -211,6 +218,15 @@ actor Cluster
   
   fun tag broadcast_deltas(name: String, delta: Tokens box) =>
     _broadcast_writev(MsgPushDeltas.to_wire(name, delta))
+  
+  fun tag broadcast_deltas_with_disk(
+    disk: Disk,
+    name: String,
+    delta: Tokens box)
+  =>
+    let data = MsgPushDeltas.to_wire(name, delta)
+    _broadcast_writev(data)
+    disk.append_writev(name, data)
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
     if _known_addrs.converge(received_addrs) then
@@ -247,7 +263,12 @@ actor Cluster
       end
     end
   
-  fun ref _passive_msg(conn: _Conn tag, iter: DatabaseCodecInIterator iso)? =>
+  fun ref _passive_msg(
+    conn: _Conn tag,
+    iter: DatabaseCodecInIterator iso,
+    orig: Array[U8] val)
+    ?
+  =>
     _last_activity(conn) = _tick
     (let msg', let rest) = Msg.from_wire(consume iter)?
     match msg'
@@ -262,6 +283,7 @@ actor Cluster
     | let msg: MsgPushDeltas =>
       (let name, let rest') = msg.from_wire(consume rest)?
       _database.converge_deltas(name, consume rest')
+      _disk.append_write(name, orig)
       _send(conn, MsgPong.to_wire())
     else
       _passive_error(conn, "unhandled cluster message", msg'.name())

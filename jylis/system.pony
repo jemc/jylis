@@ -18,8 +18,13 @@ actor SystemDispose
   var _dispose: (Dispose | None) = None
   var _dispose_when_ready: Bool = false
   
-  be setup(database: Database, server: Server, cluster: Cluster) =>
-    _dispose = Dispose(database, server, cluster) .> on_signal()
+  be setup(
+    database: Database,
+    disk: DiskAny,
+    server: Server,
+    cluster: Cluster)
+  =>
+    _dispose = Dispose(database, disk, server, cluster) .> on_signal()
     if _dispose_when_ready then apply() end
   
   be apply() =>

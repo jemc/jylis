@@ -107,9 +107,9 @@ class TestCluster is UnitTest
     h.dispose_when_done(bar_s)
     h.dispose_when_done(baz_s)
     
-    let foo_c = Cluster(auth, foo, foo_d)
-    let bar_c = Cluster(auth, bar, bar_d)
-    let baz_c = Cluster(auth, baz, baz_d)
+    let foo_c = Cluster(auth, foo, foo_d, DiskNone)
+    let bar_c = Cluster(auth, bar, bar_d, DiskNone)
+    let baz_c = Cluster(auth, baz, baz_d, DiskNone)
     
     h.dispose_when_done(foo_c)
     h.dispose_when_done(bar_c)

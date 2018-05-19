@@ -2,19 +2,28 @@ use "signals"
 
 actor Dispose
   let _database: Database
+  let _disk: DiskAny
   let _server: Server
   let _cluster: Cluster
   var _disposing: Bool = false
   
-  new create(database': Database, server': Server, cluster': Cluster) =>
-    (_database, _server, _cluster) = (database', server', cluster')
+  new create(
+    database': Database,
+    disk': DiskAny,
+    server': Server,
+    cluster': Cluster)
+  =>
+    (_database, _disk, _server, _cluster) =
+      (database', disk', server', cluster')
   
   be dispose() =>
     if not _disposing then
       _disposing = true
+      // TODO: Audit correct order of shutdown, especially for _disk.
       _database.clean_shutdown().next[None]({(_) =>
         _server.dispose()
         _cluster.dispose()
+        _disk.dispose()
       })
     end
   
