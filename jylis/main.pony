@@ -9,5 +9,4 @@ actor Main
       let server   = Server(auth, system, database)
       let cluster  = Cluster(auth, system, database, disk)
       system.dispose.setup(database, disk, server, cluster)
-      system.dispose()
     end
