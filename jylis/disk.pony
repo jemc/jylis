@@ -1,39 +1,62 @@
 use "files"
 
-trait val DiskAny
-  fun setup(log: Log)?
-
-primitive DiskNone is DiskAny
-  fun setup(log: Log) =>
-    log.info() and log.i("disk persistence is disabled")
-
-class val Disk is DiskAny
-  let _dir: FilePath
-  
-  new val create(dir': FilePath) => _dir = dir'
-  
-  fun setup(log: Log)? =>
-    // Try to create the directory.
-    if not _dir.mkdir() then
-      log.err() and log.e("disk dir couldn't be created at " + _dir.path)
-      error
-    end
-    
-    let file =
-      try CreateFile(FilePath(_dir, "init.test.db.jylis")?) as File else
-        log.err() and log.e(
-          "disk test file couldn't be created in " + _dir.path
-        )
-        error
+primitive DiskSetup
+  fun apply(system: System, database: Database): DiskAny =>
+    // Return early if no disk_dir option was specified.
+    let dir =
+      try system.config.disk_dir as FilePath else
+        system.log.info() and system.log.i("disk persistence is disabled")
+        return DiskNone
       end
     
-    file.queue("OK\n")
-    
-    if not file.flush() then
-      log.err() and log.e(
-        "disk test file couldn't be written at " + file.path.path
+    // Try to create the directory.
+    if not dir.mkdir() then
+      system.log.err() and system.log.e(
+        "disk dir couldn't be created at " + dir.path
       )
-      error
+      system.dispose()
+      return DiskNone
     end
     
-    log.info() and log.i("disk persistence is enabled at " + _dir.path)
+    // Try to create a test file.
+    with file =
+      try CreateFile(FilePath(dir, "init.test.db.jylis")?) as File else
+        system.log.err() and system.log.e(
+          "disk test file couldn't be created in " + dir.path
+        )
+        system.dispose()
+        return DiskNone
+      end
+    do
+      // Try to write to the test file.
+      if not file.print("OK") then
+        system.log.err() and system.log.e(
+          "disk test file couldn't be written at " + file.path.path
+        )
+        system.dispose()
+        return DiskNone
+      end
+      
+      // Try to delete the test file.
+      if not file.path.remove() then
+        system.log.err() and system.log.e(
+          "disk test file couldn't be deleted at " + file.path.path
+        )
+        system.dispose()
+        return DiskNone
+      end
+    end
+    
+    // Create the Disk actor and return it.
+    system.log.info() and system.log.i(
+      "disk persistence is enabled at " + dir.path
+    )
+    Disk(dir)
+
+trait tag DiskAny
+
+primitive DiskNone is DiskAny
+
+actor Disk is DiskAny
+  let _dir: FilePath
+  new create(dir': FilePath) => _dir = dir'

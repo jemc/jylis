@@ -13,9 +13,6 @@ class val System
     dispose = SystemDispose
     repo    = SystemRepoManager(config)
     log     = config.log .> set_sys(repo)
-    
-    // Set up disk persistence (if applicable) or shut down if it failed.
-    try config.disk.setup(log)? else dispose() end
 
 actor SystemDispose
   var _dispose: (Dispose | None) = None

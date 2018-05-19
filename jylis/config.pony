@@ -4,13 +4,13 @@ use "time"
 use "files"
 
 class val Config
-  var port:            String         = "6379"
-  var addr:            Address        = Address.from_string("127.0.0.1:9999:")
-  var seed_addrs:      Array[Address] = []
-  var disk:            DiskAny        = DiskNone
-  var heartbeat_time:  F64            = 10
-  var system_log_trim: USize          = 200
-  var log:             Log            = Log.create_none()
+  var port:            String            = "6379"
+  var addr:            Address           = Address.from_string("127.0.0.1:9999:")
+  var seed_addrs:      Array[Address]    = []
+  var disk_dir:        (FilePath | None) = None
+  var heartbeat_time:  F64               = 10
+  var system_log_trim: USize             = 200
+  var log:             Log               = Log.create_none()
   
   fun ref normalize() =>
     // Force a random name if the addr.name is empty.
@@ -87,7 +87,7 @@ primitive ConfigFromCLI
     
     let disk_dir = cmd.option("disk-dir").string()
     if disk_dir != "" then
-      try config.disk = Disk(FilePath(auth, disk_dir)?) end
+      try config.disk_dir = FilePath(auth, disk_dir)? end
     end
     
     config.heartbeat_time = cmd.option("heartbeat-time").f64()
