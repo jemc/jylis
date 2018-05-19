@@ -106,6 +106,7 @@ actor Disk is DiskAny
         "disk failed to flush file: " + file.path.path
       )
     end
+    file.sync()
   
   // TODO: Either don't flush every time, or remove this function.
   fun ref _maybe_flush(file: File) => _flush(file)
