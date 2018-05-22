@@ -72,10 +72,15 @@ class Jylis
       
       match = pattern.match(line)
       return match if match
+      
+      if line.start_with?("(E)")
+        show_output
+        fail "database had an unexpected runtime error: #{line}"
+      end
     end
   rescue EOFError
     show_output
-    fail "command failed while awaiting line: #{pattern.inspect}"
+    fail "database exited while we were awaiting line: #{pattern.inspect}"
   end
   
   # Invoke a Redis-style command on the server.
