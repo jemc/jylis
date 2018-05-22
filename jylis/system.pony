@@ -41,7 +41,7 @@ actor SystemRepoManager is RepoManagerAny
   be apply(resp: Respond, cmd: Array[String] val) =>
     _core(resp, cmd)
   
-  be flush_deltas(fn: _SendDeltasFn) =>
+  be flush_deltas(fn: _NameTokensFn) =>
     _core.flush_deltas(fn)
   
   be converge_deltas(deltas: crdt.TokensIterator iso) =>

@@ -12,7 +12,7 @@ interface RepoAny
 
 interface tag RepoManagerAny
   be apply(resp: Respond, cmd: Array[String] val)
-  be flush_deltas(fn: _SendDeltasFn)
+  be flush_deltas(fn: _NameTokensFn)
   be converge_deltas(deltas: crdt.TokensIterator iso)
   be clean_shutdown(promise: Promise[None])
 
@@ -25,7 +25,7 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
   be apply(resp: Respond, cmd: Array[String] val) =>
     _core(resp, cmd)
   
-  be flush_deltas(fn: _SendDeltasFn) =>
+  be flush_deltas(fn: _NameTokensFn) =>
     _core.flush_deltas(fn)
   
   be converge_deltas(deltas: crdt.TokensIterator iso) =>
@@ -37,7 +37,7 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
 class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
   let _name: String
   let _repo: R
-  var _deltas_fn: (_SendDeltasFn | None) = None
+  var _deltas_fn: (_NameTokensFn | None) = None
   var _last_proactive: U64 = 0
   var _shutdown: Bool = false
   
@@ -73,10 +73,10 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
     propagation of changes. We use a simple heuristic that allows us to do
     proactive propagation at most once every 500 milliseconds.
     
-    We can only do this if we've already received and stored a _SendDeltasFn.
+    We can only do this if we've already received and stored a _NameTokensFn.
     """
     try
-      let fn = _deltas_fn as _SendDeltasFn
+      let fn = _deltas_fn as _NameTokensFn
       let now = Time.millis()
       if (now - 500) >= _last_proactive then
         fn(_name, _repo.flush_deltas())
@@ -84,7 +84,7 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
       end
     end
   
-  fun ref flush_deltas(fn: _SendDeltasFn) =>
+  fun ref flush_deltas(fn: _NameTokensFn) =>
     _deltas_fn = fn
     if not _repo.delta_empty() then
       fn(_name, _repo.flush_deltas())
@@ -107,6 +107,6 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
     the promise passed as an argument will be fulfilled.
     """
     _shutdown = true
-    try flush_deltas(_deltas_fn as _SendDeltasFn) end
+    try flush_deltas(_deltas_fn as _NameTokensFn) end
     // TODO: disk persistence?
     promise(None)

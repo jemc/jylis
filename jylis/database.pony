@@ -39,7 +39,7 @@ class val Database
         """)
     end
   
-  fun flush_deltas(fn: _SendDeltasFn) =>
+  fun flush_deltas(fn: _NameTokensFn) =>
     for repo in _map.values() do
       repo.flush_deltas(fn)
     end

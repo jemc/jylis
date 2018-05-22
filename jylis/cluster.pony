@@ -12,7 +12,7 @@ actor Cluster
   let _disk: DiskAny
   let _listen: _Listen
   let _heart: Heart
-  let _deltas_fn: _SendDeltasFn
+  let _deltas_fn: _NameTokensFn
   var _tick: U64                        = 0
   let _known_addrs: P2Set[Address]      = _known_addrs.create()
   let _passives: SetIs[_Conn]           = _passives.create()
