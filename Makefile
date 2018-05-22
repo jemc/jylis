@@ -26,6 +26,7 @@ lldb:
 lldb-test: bin/test
 	stable env lldb -o run -- bin/test
 
+# TODO: Add `spec` target to CI (need to install ruby and rspec on the CI host).
 ci: test
 
 ci-setup:
