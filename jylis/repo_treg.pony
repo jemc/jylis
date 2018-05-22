@@ -33,13 +33,14 @@ class RepoTREG
   fun tag _timestamp(cmd: Iterator[String]): U64? => cmd.next()?.u64()?
   
   fun get(resp: Respond, key: String): Bool =>
+    resp.array_start(2)
     try
       let reg = _data(key)?
-      resp.array_start(2)
       resp.string(reg.value())
       resp.u64(reg.timestamp())
     else
-      resp.null()
+      resp.string("")
+      resp.u64(0)
     end
     false
   

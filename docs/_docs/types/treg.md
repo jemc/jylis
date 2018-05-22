@@ -19,9 +19,9 @@ Get the latest `value` and `timestamp` for the register at `key`.
 
 The value/timestamp pair currently held in the register will be returned to the caller. This will always be the pair with the latest timestamp that has been seen by the node answering this query.
 
-Returns a two-element array with the current value and the logical timestamp, or `nil` if this register has not yet seen a value/timestamp written to it.
+Returns a two-element array with the current value and the logical timestamp.
 
-The value will be returned as a string, and the timestamp as an integer.
+The value will be returned as a string, and the timestamp as an integer. If this register has not yet seen a value/timestamp pair written to it, the timestamp will be zero and the value will be an empty string.
 
 ### `SET key value timestamp`
 
@@ -35,7 +35,8 @@ Returns a simple string reply of `OK`, regardless of whether the update was igno
 
 ```sh
 jylis> TREG GET mykey
-(nil)
+1) ""
+2) (integer) 0
 jylis> TREG SET mykey "hello" 10
 OK
 jylis> TREG GET mykey
