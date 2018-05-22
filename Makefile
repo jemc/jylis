@@ -14,6 +14,9 @@ bin/test: bundle.json $(shell find ${PKG} -name *.pony)
 test: bin/test
 	$^
 
+spec: bin/${PKG}
+	rspec
+
 clean:
 	rm -rf bin
 
