@@ -7,6 +7,8 @@ class Jylis
   BIN = File.join(File.dirname(__FILE__), "../../bin/jylis")
   
   attr_reader :opts
+  attr_reader :addr # filled during start of run
+  attr_reader :port # filled during start of run
   
   # Prepare to run a Jylis server with the given options,
   # which will be translated into CLI options for the binary.
@@ -14,8 +16,6 @@ class Jylis
     opts[:port] ||= Util.random_port
     opts[:addr] ||= "127.0.0.1:#{Util.random_port}"
     @opts = opts
-    
-    @client = Redis.new(host: "127.0.0.1", port: @opts[:port])
     
     opts_array = opts.map do |key, value|
       "--#{key.to_s.gsub("_", "-")}=#{value}"
@@ -34,18 +34,24 @@ class Jylis
       @stdout_io     = stdout_io
       @stdout        = []
       
-      Timeout.timeout timeout do
-        begin
-          await_line %r(server listener ready)
-          await_line %r(cluster listener ready)
-          
-          yield if block_given?
-        ensure
-          # Kill the client and the server now that the block is done.
-          @client.close
-          Process.kill("INT", status_thread.pid)
-          @status_thread.join
+      begin
+        Timeout.timeout timeout do
+          begin
+            @port = await_line(%r{server listener ready on port (\d+)})[1]
+            @addr = await_line(%r{cluster listener ready with address (\S+)})[1]
+            
+            @client = Redis.new(host: "127.0.0.1", port: @port)
+            
+            yield if block_given?
+          ensure
+            # Kill the client and the server now that the block is done.
+            @client.close
+            Process.kill("INT", status_thread.pid)
+            @status_thread.join unless $!
+          end
         end
+      rescue Timeout::Error
+        fail Timeout::Error, Thread.current[:timeout_hint]
       end
     end
   end
@@ -53,24 +59,47 @@ class Jylis
   # Print stdout of the server process to stdout of the test process.
   # For debugging purposes only.
   def show_output
+    # Fill stdout with any bytes currently available to read.
+    begin
+      @stdout_io
+        .read_nonblock(2 ** 32)
+        .each_line { |line| @stdout << line.rstrip }
+    rescue IO::WaitReadable
+    end
+    
+    # Print the lines captured from stdout.
     @stdout.each { |line| puts line }
   end
   
+  # Return a Match object or true if the given pattern matches the given line.
+  # The pattern may be a String or a Regexp
+  def _match_line(line, pattern)
+    case pattern
+    when Regexp then pattern.match(line)
+    when String then line.include?(pattern)
+    else fail NotImplementedError, "don't know how to match on #{pattern}"
+    end
+  end
+  
   # Wait for a line matching the given String or Regexp to appear in stdout,
-  # and return the first match as a Match object. The line may appear anywhere
-  # in stdout, including lines that have already been matched in the past.
-  # Multi-line Strings and Regexps are not support patterns.
+  # and return the first match as a Match object (Regexp) or true (String).
+  # The line may appear anywhere in stdout, including lines that have already
+  # been matched in the past.
+  # Multi-line Strings and Regexps are not supported patterns.
   def await_line(pattern)
     @stdout.each do |line|
-      match = pattern.match(line)
+      match = _match_line(line, pattern)
       return match if match
     end
     
     loop do
-      line = @stdout_io.readline
+      Thread.current[:timeout_hint] = \
+        "Timed out waiting to read line with pattern: #{pattern.inspect}"
+      
+      line = @stdout_io.readline.rstrip
       @stdout << line
       
-      match = pattern.match(line)
+      match = _match_line(line, pattern)
       return match if match
       
       if line.start_with?("(E)")
@@ -84,8 +113,25 @@ class Jylis
   end
   
   # Invoke a Redis-style command on the server.
-  def call(*command)
-    @client.call(*command.flatten)
+  def call(command)
+    @client.call(*command)
+  end
+  
+  # Invoke a Redis-style command on the server until the result of the call
+  # matches the given expected result, with exponential backoff.
+  def await_call_result(command, expected_result)
+    start_time = Time.now
+    result     = nil
+    
+    loop do
+      result = call(command)
+      break if result == expected_result
+      
+      Thread.current[:timeout_hint] = \
+        "Timed out waiting for result: #{expected_result}; got: #{result}"
+      
+      sleep(Time.now - start_time)
+    end
   end
   
   # Return a Hash whose keys are file names in the disk directory,
