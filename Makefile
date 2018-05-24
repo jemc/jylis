@@ -1,5 +1,5 @@
 all: bin/jylis
-.PHONY: all test clean lldb lldb-test ci ci-setup release
+.PHONY: all test spec clean lldb lldb-test ci ci-setup release
 
 PKG=jylis
 
