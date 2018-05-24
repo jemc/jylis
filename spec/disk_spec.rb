@@ -23,7 +23,7 @@ describe "Disk persistence" do
       %w[*2 *3 :0 *0 *0 *2 $4 key1 *2 $3 foo :7].join("\r\n") + "\r\n"
     
     subject.run do
-      subject.call(%w[TREG GET key1]).should eq ["foo", 7]
+      subject.await_call_result(%w[TREG GET key1], ["foo", 7])
       subject.call(%w[TREG SET key2 bar 8]).should eq "OK"
     end
     
@@ -32,8 +32,8 @@ describe "Disk persistence" do
          *2 *3 :0 *0 *0 *2 $4 key2 *2 $3 bar :8].join("\r\n") + "\r\n"
     
     subject.run do
-      subject.call(%w[TREG GET key1]).should eq ["foo", 7]
-      subject.call(%w[TREG GET key2]).should eq ["bar", 8]
+      subject.await_call_result(%w[TREG GET key1], ["foo", 7])
+      subject.await_call_result(%w[TREG GET key2], ["bar", 8])
       subject.call(%w[TREG SET key3 baz 9]).should eq "OK"
     end
     
