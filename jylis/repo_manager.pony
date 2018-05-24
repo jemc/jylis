@@ -127,6 +127,8 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
       (let push_data, let need_data) =
         _repo.compare_history(consume history)?
       
+      // TODO: tokenizing the whole repo at once is not a good idea if the data
+      // set is very large in memory - we need to stream this in chunks instead.
       if push_data then push_data_fn(_name, _repo.data_tokens()) end
       if need_data then need_data_fn(_name, _repo.history_tokens()) end
     end

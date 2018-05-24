@@ -331,6 +331,12 @@ actor Cluster
     | let msg: MsgCompareHistory =>
       (let name, let rest') = msg.from_wire(consume rest)?
       let this_tag: Cluster tag = this
+      // TODO: When a node broadcasts MsgCompareHistory to other nodes,
+      // all nodes that have more data than that node will respond by sending
+      // all of their data for those repos to the originating node.
+      // This means that a joining node will potentially get N copies of the
+      // entire data set - one from each existing node. For large data sets,
+      // this is very inefficient and could overload the joining node's memory.
       _database.compare_history(name, consume rest',
         this_tag~send_push_deltas(conn, _log), this_tag~broadcast_history())
     else
