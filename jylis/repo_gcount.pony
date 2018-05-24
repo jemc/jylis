@@ -16,8 +16,12 @@ class RepoGCOUNT
   
   fun ref delta_empty(): Bool => _delta.is_empty()
   fun ref flush_deltas(): Tokens => Tokens .> from(_delta = _delta.create(0))
+  fun ref data_tokens(): Tokens => Tokens .> from(_data)
+  fun ref history_tokens(): Tokens => let t = Tokens; _data.each_token_of_history(t); t
   fun ref converge(tokens: TokensIterator)? =>
     _data.converge(_delta.create(0) .> from_tokens(tokens)?)
+  fun ref compare_history(tokens: TokensIterator): (Bool, Bool)? =>
+    _data.compare_history_with_tokens(tokens)?
   
   fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?

@@ -47,6 +47,16 @@ actor SystemRepoManager is RepoManagerAny
   be converge_deltas(deltas: crdt.TokensIterator iso) =>
     _core.converge_deltas(consume deltas)
   
+  be send_history(send_fn: _NameTokensFn) =>
+    _core.send_history(send_fn)
+  
+  be compare_history(
+    history: crdt.TokensIterator iso,
+    push_data_fn: _NameTokensFn,
+    need_data_fn: _NameTokensFn)
+  =>
+    _core.compare_history(consume history, push_data_fn, need_data_fn)
+  
   be clean_shutdown(promise: Promise[None]) =>
     _core.clean_shutdown(promise)
   

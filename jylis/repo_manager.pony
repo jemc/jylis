@@ -8,12 +8,20 @@ interface RepoAny
   fun ref apply(r: Respond, cmd: Iterator[String]): Bool?
   fun ref delta_empty(): Bool
   fun ref flush_deltas(): crdt.Tokens
+  fun ref data_tokens(): crdt.Tokens
+  fun ref history_tokens(): crdt.Tokens
   fun ref converge(tokens: crdt.TokensIterator)?
+  fun ref compare_history(tokens: crdt.TokensIterator): (Bool, Bool)?
 
 interface tag RepoManagerAny
   be apply(resp: Respond, cmd: Array[String] val)
   be flush_deltas(fn: _NameTokensFn)
   be converge_deltas(deltas: crdt.TokensIterator iso)
+  be send_history(send_fn: _NameTokensFn)
+  be compare_history(
+    history: crdt.TokensIterator iso,
+    push_data_fn: _NameTokensFn,
+    need_data_fn: _NameTokensFn)
   be clean_shutdown(promise: Promise[None])
 
 actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
@@ -30,6 +38,16 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
   
   be converge_deltas(deltas: crdt.TokensIterator iso) =>
     _core.converge_deltas(consume deltas)
+  
+  be send_history(send_fn: _NameTokensFn) =>
+    _core.send_history(send_fn)
+  
+  be compare_history(
+    history: crdt.TokensIterator iso,
+    push_data_fn: _NameTokensFn,
+    need_data_fn: _NameTokensFn)
+  =>
+    _core.compare_history(consume history, push_data_fn, need_data_fn)
   
   be clean_shutdown(promise: Promise[None]) =>
     _core.clean_shutdown(promise)
@@ -94,6 +112,23 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
     try
       _repo.converge(consume deltas)?
       // TODO: print error when deltas fail to parse
+    end
+  
+  fun ref send_history(send_fn: _NameTokensFn) =>
+    send_fn(_name, _repo.history_tokens())
+  
+  fun ref compare_history(
+    history: crdt.TokensIterator iso,
+    push_data_fn: _NameTokensFn,
+    need_data_fn: _NameTokensFn)
+  =>
+    try
+      // TODO: print error when history fail to parse
+      (let push_data, let need_data) =
+        _repo.compare_history(consume history)?
+      
+      if push_data then push_data_fn(_name, _repo.data_tokens()) end
+      if need_data then need_data_fn(_name, _repo.history_tokens()) end
     end
   
   fun ref clean_shutdown(promise: Promise[None]) =>

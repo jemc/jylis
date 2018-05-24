@@ -158,6 +158,10 @@ actor Cluster
     
     _passives.set(conn)
     _last_activity(conn) = _tick
+    
+    // Send our known history to compare notes with the other node.
+    let this_tag: Cluster tag = this
+    _database.send_history(this_tag~send_history(conn, _log))
   
   be _active_established(conn: _Conn tag) =>
     _log.info() and _log.i("active cluster connection established to: " +
@@ -212,6 +216,10 @@ actor Cluster
     _log.debug() and _log.d("sending " + Inspect(data))
     conn.writev(data)
   
+  fun tag _sendt(conn: _Conn tag, log: Log, data: Array[ByteSeq] val) =>
+    log.debug() and log.d("sending " + Inspect(data))
+    conn.writev(data)
+  
   be _broadcast_writev(data: Array[ByteSeq] val) =>
     _log.debug() and _log.d("broadcasting " + Inspect(data))
     for conn in _actives.values() do conn.writev(data) end
@@ -228,6 +236,28 @@ actor Cluster
     let data = DatabaseCodecOut(delta.iterator())
     disk.append_writev(name, data)
     _broadcast_writev(MsgPushDeltas.to_wire(name) .> append(data))
+  
+  fun tag send_push_deltas(
+    conn: _Conn tag,
+    log: Log,
+    name: String,
+    deltas: Tokens box)
+  =>
+    let data = DatabaseCodecOut(deltas.iterator())
+    _sendt(conn, log, MsgPushDeltas.to_wire(name) .> append(data))
+  
+  fun tag send_history(
+    conn: _Conn tag, 
+    log: Log,
+    name: String,
+    history: Tokens box)
+  =>
+    let data = DatabaseCodecOut(history.iterator())
+    _sendt(conn, log, MsgCompareHistory.to_wire(name) .> append(data))
+  
+  fun tag broadcast_history(name: String, history: Tokens box) =>
+    let data = DatabaseCodecOut(history.iterator())
+    _broadcast_writev(MsgCompareHistory.to_wire(name) .> append(data))
   
   fun ref _converge_addrs(received_addrs: P2Set[Address] box) =>
     if _known_addrs.converge(received_addrs) then
@@ -298,6 +328,11 @@ actor Cluster
     | let msg: MsgExchangeAddrs =>
       let known_addrs = msg.from_wire(consume rest)?
       _converge_addrs(known_addrs)
+    | let msg: MsgCompareHistory =>
+      (let name, let rest') = msg.from_wire(consume rest)?
+      let this_tag: Cluster tag = this
+      _database.compare_history(name, consume rest',
+        this_tag~send_push_deltas(conn, _log), this_tag~broadcast_history())
     else
       _active_error(conn, "unhandled cluster message", msg'.name())
     end

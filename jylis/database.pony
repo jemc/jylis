@@ -47,6 +47,21 @@ class val Database
   fun converge_deltas(name: String, deltas: crdt.TokensIterator iso) =>
     try _map(name)?.converge_deltas(consume deltas) end
   
+  fun send_history(send_fn: _NameTokensFn) =>
+    for repo in _map.values() do
+      repo.send_history(send_fn)
+    end
+  
+  fun compare_history(
+    name: String,
+    history: crdt.TokensIterator iso,
+    push_data_fn: _NameTokensFn,
+    need_data_fn: _NameTokensFn)
+  =>
+    try
+      _map(name)?.compare_history(consume history, push_data_fn, need_data_fn)
+    end
+  
   fun clean_shutdown(): Promise[None] =>
     """
     Return a promise that is fulfilled when all RepoManagers in the _map

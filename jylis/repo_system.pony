@@ -23,9 +23,15 @@ class RepoSYSTEM
     // TODO: allow for other fields besides just log.
     Tokens .> from(_log_delta = _log_delta.create())
   
+  fun ref data_tokens(): Tokens => Tokens // TODO
+  fun ref history_tokens(): Tokens => Tokens // TODO
+  
   fun ref converge(tokens: TokensIterator)? =>
     // TODO: allow for other fields besides just log.
     _log.converge(_log_delta.create() .> from_tokens(tokens)?)
+  
+  fun ref compare_history(tokens: TokensIterator): (Bool, Bool) =>
+    (false, false) // TODO
   
   fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?

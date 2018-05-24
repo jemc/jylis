@@ -13,10 +13,11 @@ primitive Msg
     if iter.next[USize]()? != 2 then error end
     let msg =
       match iter.next[String]()?
-      | MsgPong.name()          => MsgPong
-      | MsgExchangeAddrs.name() => MsgExchangeAddrs
-      | MsgAnnounceAddrs.name() => MsgAnnounceAddrs
-      | MsgPushDeltas.name()    => MsgPushDeltas
+      | MsgPong.name()           => MsgPong
+      | MsgExchangeAddrs.name()  => MsgExchangeAddrs
+      | MsgAnnounceAddrs.name()  => MsgAnnounceAddrs
+      | MsgPushDeltas.name()     => MsgPushDeltas
+      | MsgCompareHistory.name() => MsgCompareHistory
       else error
       end
     (msg, consume iter)
@@ -81,4 +82,23 @@ primitive MsgPushDeltas is MsgAny
     resp.array_start(2)
     resp.string(name')
     // Expect the actual deltas to be encoded next and appended into the array.
+    resp.buffer.done()
+
+primitive MsgCompareHistory is MsgAny
+  fun name(): String => "CMPR"
+  
+  fun from_wire(
+    iter: DatabaseCodecInIterator iso)
+    : (String, DatabaseCodecInIterator iso^)?
+  =>
+    if iter.next[USize]()? != 2 then error end
+    let name' = iter.next[String]()?
+    (name', consume iter)
+  
+  fun to_wire(name': String): Array[ByteSeq] iso^ =>
+    let resp: ResponseWriter = ResponseWriter
+    Msg._to_wire(this, resp)
+    resp.array_start(2)
+    resp.string(name')
+    // Expect the actual history to be encoded next and appended into the array.
     resp.buffer.done()

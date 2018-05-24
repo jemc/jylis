@@ -31,4 +31,24 @@ describe "Clustering" do
       end
     end
   end
+  
+  it "catches up a new node to data that was written before it connected" do
+    subject.run do
+      # Create two more nodes which use the first node as a seed.
+      node2 = Jylis.new(seed_addrs: subject.addr, **opts)
+      node3 = Jylis.new(seed_addrs: subject.addr, **opts)
+      nodes = [subject, node2, node3]
+      
+      # Run the second node.
+      node2.run do
+        # Write some data to node2.
+        node2.call(%w[TREG SET key1 foo 7]).should eq "OK"
+        
+        # Expect the data to become visible on node3 after it starts up.
+        node3.run do
+          node3.await_call_result(%w[TREG GET key1], ["foo", 7])
+        end
+      end
+    end
+  end
 end
