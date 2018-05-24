@@ -224,9 +224,9 @@ actor Cluster
     _log.debug() and _log.d("broadcasting " + Inspect(data))
     for conn in _actives.values() do conn.writev(data) end
   
-  fun tag broadcast_deltas(name: String, delta: Tokens box) =>
-    let data = DatabaseCodecOut(delta.iterator())
-    _broadcast_writev(MsgPushDeltas.to_wire(name) .> append(data))
+  fun tag broadcast_deltas(name: String, tokens: Tokens box) =>
+    let data = DatabaseCodecOut(tokens.iterator())
+    _broadcast_writev(MsgPushData.to_wire(name) .> append(data))
   
   fun tag broadcast_deltas_with_disk(
     disk: Disk,
@@ -235,7 +235,7 @@ actor Cluster
   =>
     let data = DatabaseCodecOut(delta.iterator())
     disk.append_writev(name, data)
-    _broadcast_writev(MsgPushDeltas.to_wire(name) .> append(data))
+    _broadcast_writev(MsgPushData.to_wire(name) .> append(data))
   
   fun tag send_push_deltas(
     conn: _Conn tag,
@@ -244,7 +244,7 @@ actor Cluster
     deltas: Tokens box)
   =>
     let data = DatabaseCodecOut(deltas.iterator())
-    _sendt(conn, log, MsgPushDeltas.to_wire(name) .> append(data))
+    _sendt(conn, log, MsgPushData.to_wire(name) .> append(data))
   
   fun tag send_history(
     conn: _Conn tag, 
@@ -311,7 +311,7 @@ actor Cluster
       let known_addrs = msg.from_wire(consume rest)?
       _converge_addrs(known_addrs)
       _send(conn, MsgPong.to_wire())
-    | let msg: MsgPushDeltas =>
+    | let msg: MsgPushData =>
       (let name, let rest') = msg.from_wire(consume rest)?
       _database.converge_deltas(name, consume rest')
       _disk.append_write(name, orig)

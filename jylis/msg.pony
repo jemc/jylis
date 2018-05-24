@@ -16,7 +16,7 @@ primitive Msg
       | MsgPong.name()           => MsgPong
       | MsgExchangeAddrs.name()  => MsgExchangeAddrs
       | MsgAnnounceAddrs.name()  => MsgAnnounceAddrs
-      | MsgPushDeltas.name()     => MsgPushDeltas
+      | MsgPushData.name()     => MsgPushData
       | MsgCompareHistory.name() => MsgCompareHistory
       else error
       end
@@ -65,8 +65,8 @@ primitive MsgAnnounceAddrs is MsgAny
     DatabaseCodecOut.into(resp, tokens.iterator())
     resp.buffer.done()
 
-primitive MsgPushDeltas is MsgAny
-  fun name(): String => "PDLT"
+primitive MsgPushData is MsgAny
+  fun name(): String => "PDAT"
   
   fun from_wire(
     iter: DatabaseCodecInIterator iso)
