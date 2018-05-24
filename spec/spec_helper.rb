@@ -1,6 +1,7 @@
 gem "redis", "4.0.1"
 
 require_relative "support/jylis"
+require_relative "support/ujson"
 
 Thread.abort_on_exception = true
 
