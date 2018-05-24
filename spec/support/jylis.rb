@@ -51,6 +51,7 @@ class Jylis
           end
         end
       rescue Timeout::Error
+        show_output
         fail Timeout::Error, Thread.current[:timeout_hint]
       end
     end
