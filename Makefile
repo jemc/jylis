@@ -27,9 +27,12 @@ lldb-test: bin/test
 	stable env lldb -o run -- bin/test
 
 # TODO: Add `spec` target to CI (need to install ruby and rspec on the CI host).
-ci: test
+ci: test spec
 
 ci-setup:
+	apt-get update
+	apt-get install -y ruby
+	gem install rspec redis
 	stable fetch
 
 bin/${PKG}-release: bundle.json $(shell find ${PKG} -name *.pony)
