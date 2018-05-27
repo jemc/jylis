@@ -40,3 +40,12 @@ class TestMsg is UnitTest
     else
       h.assert_no_error({()? => error }, "MsgAnnounceAddrs")
     end
+    
+    try
+      (let msg, let iter) = _from_wire(MsgRequestDump.to_wire("NAME"))?
+      h.assert_eq[String](MsgRequestDump.name(), msg.name())
+      let name' = MsgRequestDump.from_wire(consume iter)?
+      h.assert_eq[String]("NAME", name')
+    else
+      h.assert_no_error({()? => error }, "MsgRequestDump")
+    end

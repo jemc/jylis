@@ -161,7 +161,7 @@ actor Cluster
     
     // Send our known history to compare notes with the other node.
     let this_tag: Cluster tag = this
-    _database.send_history(this_tag~send_history(conn, _log))
+    _database.send_all_history(this_tag~send_compare_history(conn, _log))
   
   be _active_established(conn: _Conn tag) =>
     _log.info() and _log.i("active cluster connection established to: " +
@@ -237,7 +237,7 @@ actor Cluster
     disk.append_writev(name, data)
     _broadcast_writev(MsgPushData.to_wire(name) .> append(data))
   
-  fun tag send_push_deltas(
+  fun tag send_push_data(
     conn: _Conn tag,
     log: Log,
     name: String,
@@ -246,7 +246,10 @@ actor Cluster
     let data = DatabaseCodecOut(deltas.iterator())
     _sendt(conn, log, MsgPushData.to_wire(name) .> append(data))
   
-  fun tag send_history(
+  fun tag send_request_dump(conn: _Conn tag, log: Log, name: String) =>
+    _sendt(conn, log, MsgRequestDump.to_wire(name))
+  
+  fun tag send_compare_history(
     conn: _Conn tag, 
     log: Log,
     name: String,
@@ -301,6 +304,7 @@ actor Cluster
     ?
   =>
     _last_activity(conn) = _tick
+    let this_tag: Cluster tag = this
     (let msg', let rest) = Msg.from_wire(consume iter)?
     match msg'
     | let msg: MsgExchangeAddrs =>
@@ -316,29 +320,36 @@ actor Cluster
       _database.converge_deltas(name, consume rest')
       _disk.append_write(name, orig)
       _send(conn, MsgPong.to_wire())
+    | let msg: MsgCompareHistory =>
+      (let name, let rest') = msg.from_wire(consume rest)?
+      // TODO: don't immediately send the dump request here as the 2nd response.
+      // We want to control the number of dump requests we have outbound at a
+      // given time, so that they don't flood us with memory at the same time.
+      _send(conn, MsgRequestDump.to_wire(name))
+      // _database.compare_history(name, consume rest',
+      //   _NameTokensFnNone,
+      //   this_tag~send_request_dump(conn, _log))
     else
       _passive_error(conn, "unhandled cluster message", msg'.name())
     end
   
   fun ref _active_msg(conn: _Conn tag, iter: DatabaseCodecInIterator iso)? =>
     _last_activity(conn) = _tick
+    let this_tag: Cluster tag = this
     (let msg', let rest) = Msg.from_wire(consume iter)?
     match msg'
     | let msg: MsgPong => None
     | let msg: MsgExchangeAddrs =>
       let known_addrs = msg.from_wire(consume rest)?
       _converge_addrs(known_addrs)
+    | let msg: MsgRequestDump =>
+      let name = msg.from_wire(consume rest)?
+      _database.send_data(name, this_tag~send_push_data(conn, _log))
     | let msg: MsgCompareHistory =>
       (let name, let rest') = msg.from_wire(consume rest)?
-      let this_tag: Cluster tag = this
-      // TODO: When a node broadcasts MsgCompareHistory to other nodes,
-      // all nodes that have more data than that node will respond by sending
-      // all of their data for those repos to the originating node.
-      // This means that a joining node will potentially get N copies of the
-      // entire data set - one from each existing node. For large data sets,
-      // this is very inefficient and could overload the joining node's memory.
       _database.compare_history(name, consume rest',
-        this_tag~send_push_deltas(conn, _log), this_tag~broadcast_history())
+        this_tag~send_compare_history(conn, _log),
+        _NameFnNone) // TODO: do something here?
     else
       _active_error(conn, "unhandled cluster message", msg'.name())
     end

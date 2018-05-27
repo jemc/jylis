@@ -16,7 +16,8 @@ primitive Msg
       | MsgPong.name()           => MsgPong
       | MsgExchangeAddrs.name()  => MsgExchangeAddrs
       | MsgAnnounceAddrs.name()  => MsgAnnounceAddrs
-      | MsgPushData.name()     => MsgPushData
+      | MsgRequestDump.name()    => MsgRequestDump
+      | MsgPushData.name()       => MsgPushData
       | MsgCompareHistory.name() => MsgCompareHistory
       else error
       end
@@ -63,6 +64,19 @@ primitive MsgAnnounceAddrs is MsgAny
     let tokens = Tokens .> from(known_addrs)
     Msg._to_wire(this, resp)
     DatabaseCodecOut.into(resp, tokens.iterator())
+    resp.buffer.done()
+
+primitive MsgRequestDump is MsgAny
+  fun name(): String => "DUMP"
+  
+  fun from_wire(iter: DatabaseCodecInIterator iso): String? =>
+    let name' = iter.next[String]()?
+    name'
+  
+  fun to_wire(name': String): Array[ByteSeq] iso^ =>
+    let resp: ResponseWriter = ResponseWriter
+    Msg._to_wire(this, resp)
+    resp.string(name')
     resp.buffer.done()
 
 primitive MsgPushData is MsgAny

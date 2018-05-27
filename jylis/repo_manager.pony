@@ -17,11 +17,12 @@ interface tag RepoManagerAny
   be apply(resp: Respond, cmd: Array[String] val)
   be flush_deltas(fn: _NameTokensFn)
   be converge_deltas(deltas: crdt.TokensIterator iso)
+  be send_data(send_fn: _NameTokensFn)
   be send_history(send_fn: _NameTokensFn)
   be compare_history(
     history: crdt.TokensIterator iso,
-    push_data_fn: _NameTokensFn,
-    need_data_fn: _NameTokensFn)
+    send_fn: _NameTokensFn,
+    need_fn: _NameFn)
   be clean_shutdown(promise: Promise[None])
 
 actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
@@ -39,15 +40,18 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
   be converge_deltas(deltas: crdt.TokensIterator iso) =>
     _core.converge_deltas(consume deltas)
   
+  be send_data(send_fn: _NameTokensFn) =>
+    _core.send_data(send_fn)
+  
   be send_history(send_fn: _NameTokensFn) =>
     _core.send_history(send_fn)
   
   be compare_history(
     history: crdt.TokensIterator iso,
-    push_data_fn: _NameTokensFn,
-    need_data_fn: _NameTokensFn)
+    send_fn: _NameTokensFn,
+    need_fn: _NameFn)
   =>
-    _core.compare_history(consume history, push_data_fn, need_data_fn)
+    _core.compare_history(consume history, send_fn, need_fn)
   
   be clean_shutdown(promise: Promise[None]) =>
     _core.clean_shutdown(promise)
@@ -114,23 +118,26 @@ class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
       // TODO: print error when deltas fail to parse
     end
   
+  fun ref send_data(send_fn: _NameTokensFn) =>
+    // TODO: tokenizing the whole repo at once may not be a good idea if the
+    // data set is very large in memory - consider alternatives.
+    send_fn(_name, _repo.data_tokens())
+  
   fun ref send_history(send_fn: _NameTokensFn) =>
     send_fn(_name, _repo.history_tokens())
   
   fun ref compare_history(
     history: crdt.TokensIterator iso,
-    push_data_fn: _NameTokensFn,
-    need_data_fn: _NameTokensFn)
+    send_fn: _NameTokensFn,
+    need_fn: _NameFn)
   =>
     try
       // TODO: print error when history fail to parse
-      (let push_data, let need_data) =
+      (let have_more, let need_more) =
         _repo.compare_history(consume history)?
       
-      // TODO: tokenizing the whole repo at once is not a good idea if the data
-      // set is very large in memory - we need to stream this in chunks instead.
-      if push_data then push_data_fn(_name, _repo.data_tokens()) end
-      if need_data then need_data_fn(_name, _repo.history_tokens()) end
+      if have_more then send_fn(_name, _repo.history_tokens()) end
+      if need_more then need_fn(_name) end
     end
   
   fun ref clean_shutdown(promise: Promise[None]) =>

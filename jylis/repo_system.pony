@@ -1,3 +1,4 @@
+
 use "collections"
 use "crdt"
 use "resp"
@@ -23,8 +24,11 @@ class RepoSYSTEM
     // TODO: allow for other fields besides just log.
     Tokens .> from(_log_delta = _log_delta.create())
   
-  fun ref data_tokens(): Tokens => Tokens // TODO
-  fun ref history_tokens(): Tokens => Tokens // TODO
+  fun ref data_tokens(): Tokens =>
+    Tokens .> from(_log)
+  
+  fun ref history_tokens(): Tokens =>
+    Tokens .> push(USize(0)) // TODO
   
   fun ref converge(tokens: TokensIterator)? =>
     // TODO: allow for other fields besides just log.
