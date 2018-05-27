@@ -1,6 +1,5 @@
 use "resp"
 use "crdt"
-use "inspect"
 
 trait val MsgAny
   fun name(): String
