@@ -16,7 +16,7 @@ RUN git clone --depth 1 ${PONYC_GIT_URL} /tmp/ponyc && \
 # Install Pony dependency manager (stable).
 # TODO: use master branch when this branch has been merged
 ENV STABLE_GIT_URL https://github.com/ponylang/pony-stable
-RUN git clone --branch fix/ponyc-master-exitcode-fn --depth 1 ${STABLE_GIT_URL} /tmp/pony-stable && \
+RUN git clone --depth 1 ${STABLE_GIT_URL} /tmp/pony-stable && \
     cd /tmp/pony-stable && \
     make config=release install && \
     rm -rf /tmp/pony-stable
