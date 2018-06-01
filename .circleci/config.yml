@@ -14,13 +14,6 @@ jobs:
       - checkout
       - run: make ci-setup
       - run: make ci
-  vs-ponyc-master-on-commit:
-    docker:
-      - image: ponylang/ponyc:latest
-    steps:
-      - checkout
-      - run: make ci-setup
-      - run: make ci
   nightly-release:
     machine: true
     steps:
@@ -31,7 +24,7 @@ workflows:
   version: 2
   commit:
     jobs:
-      - vs-ponyc-master-on-commit # TODO: use vs-ponyc-release on next release
+      - vs-ponyc-release
   nightly:
     triggers:
       - schedule:
