@@ -5,7 +5,7 @@
   - docker
   - compile
   - connect
-  - data-persistence
+  - disk-persistence
 
 - title: Data Types
   index: types
