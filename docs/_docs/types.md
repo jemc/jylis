@@ -5,7 +5,7 @@ permalink: /docs/types/
 
 # Data Types
 
-Jylis is a database for CRDTs (Convergent Replicated Data Types). Each data type in Jylis defines certain constraints about how it can be used as well as a strategy for merging data from distributed replicas such that each replica is guaranteed to converge to the same result after sufficient information propagation between replicas. This is known as *eventual consistency*.
+Jylis is a database for CRDTs (Conflict-free Replicated Data Types). Each data type in Jylis defines certain constraints about how it can be used as well as a strategy for merging data from distributed replicas such that each replica is guaranteed to converge to the same result after sufficient information propagation between replicas. This is known as *eventual consistency*.
 
 The primary advantage of CRDTs is that updating data in any replica never requires synchronizing the update with other replicas. In other words, consensus between nodes in the cluster is never required. As a result, we need not pay any penalty to availability or request latency even when working with a distributed cluster over a faulty, high latency network. Information will propagate between replicas asynchronously in the background, and they will eventually reach the same result after overcoming the faults and latency between cluster nodes.
 
