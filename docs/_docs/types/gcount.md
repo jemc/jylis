@@ -11,6 +11,10 @@ Every `INC` operation increases the value associated with the node that processe
 
 The value of the counter is a 64-bit unsigned integer.
 
+## Related Data Types
+
+- [`PNCOUNT`](../pncount) is a similar data type that allows both increasing and decreasing the value.
+
 ## Functions
 
 ### `GET key`

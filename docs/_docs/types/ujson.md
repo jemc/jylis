@@ -23,6 +23,10 @@ A UJSON value is one of the four JSON primitive types: a string (`"apple"`), a n
 
 Though UJSON data is represented with standard JSON syntax, not all JSON data sets can be stored faithfully as UJSON. That is, any valid JSON can be used as input for a UJSON node, but parts of the data may be merged and/or collapsed in adherence to the semantics of UJSON. See [UJSON Primer](#ujson-primer) for more information.
 
+## Related Data Types
+
+- [`MVREG`](../mvreg) is a much simpler data type that requires no JSON parser to work with, but it does not nest deeply, and has more limited functionality.
+
 ## Functions
 
 ### `GET key [key...]`

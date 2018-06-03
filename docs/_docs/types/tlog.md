@@ -11,6 +11,10 @@ To limit the depth, each log has a cutoff timestamp - the minimum timestamp valu
 
 The logical timestamp is a 64-bit unsigned integer. It may be used to represent anything appropriate to the application; perhaps milliseconds since the unix epoch, or perhaps a sequence number.
 
+## Related Data Types
+
+- [`TREG`](../treg) is another data type that uses logical timestamps, but it has each entry overwrite all earlier entries rather than retaining earlier entries in a sorted list.
+
 ## Functions
 
 ### `GET key [count]`

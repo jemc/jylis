@@ -11,6 +11,12 @@ Every `SET` operation provides a new logical timestamp alongside the new value t
 
 The logical timestamp is a 64-bit unsigned integer. It may be used to represent anything appropriate to the application; perhaps milliseconds since the unix epoch, or perhaps a sequence number.
 
+## Related Data Types
+
+- [`TLOG`](../tlog) is another data type that uses logical timestamps, but it retains a sorted list of entries rather than having each later entry overwrite the earlier ones.
+
+- [`MVREG`](../mvreg) is a register that uses a conflict resolution strategy that requires no timestamps, but is unable to resolve every kind of conflict and leaves multiple values in the register when the causal order in which they were written is indeterminate.
+
 ## Functions
 
 ### `GET key`

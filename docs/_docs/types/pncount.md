@@ -11,6 +11,10 @@ Every `INC` operation increases the "positive" value associated with the node th
 
 The value of the counter is a 64-bit signed integer.
 
+## Related Data Types
+
+- [`GCOUNT`](../gcount) is a similar data type that allows only increasing the value.
+
 ## Functions
 
 ### `GET key`

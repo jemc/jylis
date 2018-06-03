@@ -9,6 +9,12 @@ A multi-value register holds a latest value in causal history. This will often b
 
 Every `SET` operation provides a new value to be assigned to the register. Any locally observable values in the register are removed, so that the only local value is the new desired value. However, if a different value was concurrently written to another replica, there is no clear causal relation between the two new values, and both will be retained. In other words, a multi-value register will usually only have one value, but in the case of conflict a `GET` operation will return multiple values and it will be the job of the application to handle them appropriately.
 
+## Related Data Types
+
+- [`TREG`](../treg) is a register that is guaranteed to always hold a single value, but logical timestamps must be provided to resolve conflicts instead of using causal history, and the conflict resolution is only as valid as those timestamps are.
+
+- [`UJSON`](../ujson) provides broadly expanded functionality with similar semantics to a collection of deeply nested multi-value registers, but requires a JSON parser to use and adds additional complexity to the solution.
+
 ## Functions
 
 ### `GET key`
