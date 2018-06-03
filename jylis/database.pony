@@ -19,6 +19,7 @@ class val Database
     _map("TLOG")    = RepoManager[RepoTLOG,    RepoTLOGHelp]   ("TLOG",    identity)
     _map("GCOUNT")  = RepoManager[RepoGCOUNT,  RepoGCOUNTHelp] ("GCOUNT",  identity)
     _map("PNCOUNT") = RepoManager[RepoPNCOUNT, RepoPNCOUNTHelp]("PNCOUNT", identity)
+    _map("MVREG")   = RepoManager[RepoMVREG,   RepoMVREGHelp]  ("MVREG",   identity)
     _map("UJSON")   = RepoManager[RepoUJSON,   RepoUJSONHelp]  ("UJSON",   identity)
     _map("SYSTEM")  = _system.repo
   
@@ -34,6 +35,7 @@ class val Database
           TLOG    - Timestamped Log (Retain Latest Entries)
           GCOUNT  - Grow-Only Counter
           PNCOUNT - Positive/Negative Counter
+          MVREG   - Multi-Value Register (Observed-Remove Set)
           UJSON   - Unordered JSON (Nested Observed-Remove Maps and Sets)
           SYSTEM  - (miscellaneous system-level operations)
         """)
