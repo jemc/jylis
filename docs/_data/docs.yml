@@ -5,6 +5,7 @@
   - docker
   - compile
   - connect
+  - clustering
   - disk-persistence
 
 - title: Data Types
