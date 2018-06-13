@@ -18,6 +18,8 @@ class Jylis
     @opts = opts
     
     opts_array = opts.map do |key, value|
+      value = value.join(" ") if value.is_a?(Array)
+      
       "--#{key.to_s.gsub("_", "-")}=#{value}"
     end
     
