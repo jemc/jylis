@@ -2,6 +2,8 @@ all: bin/jylis
 .PHONY: all test spec clean lldb lldb-test ci ci-setup release
 
 PKG=jylis
+REPO_URL=https://github.com/jemc/jylis
+COMPAT_BRANCH=master
 
 bin/${PKG}: bundle.json $(shell find ${PKG} -name *.pony)
 	mkdir -p bin
@@ -11,10 +13,16 @@ bin/test: bundle.json $(shell find ${PKG} -name *.pony)
 	mkdir -p bin
 	stable env ponyc --debug -o bin ${PKG}/test
 
+compat/bin/${PKG}: compat/bundle.json $(shell find compat/${PKG} -name *.pony)
+	git clone ${REPO_URL} --depth 1 --branch ${COMPAT_BRANCH} compat || \
+	git --work-tree compat --git-dir compat/.git pull
+	mkdir -p compat/bin
+	stable env ponyc --debug -o compat/bin compat/${PKG}
+
 test: bin/test
 	$^
 
-spec: bin/${PKG}
+spec: bin/${PKG} compat/bin/${PKG}
 	rspec
 
 clean:
