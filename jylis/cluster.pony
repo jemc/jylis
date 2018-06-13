@@ -318,7 +318,12 @@ actor Cluster
     | let msg: MsgPushData =>
       (let name, let rest') = msg.from_wire(consume rest)?
       _database.converge_deltas(name, consume rest')
-      _disk.append_write(name, orig)
+      
+      // TODO: avoid this brittle hack for removing Msg prefix from the frame.
+      let trimmed = String.from_array(orig).trim(
+        23 + name.size().string().size() + name.size()).array()
+      _disk.append_write(name, trimmed)
+      
       _send(conn, MsgPong.to_wire())
     | let msg: MsgCompareHistory =>
       (let name, let rest') = msg.from_wire(consume rest)?

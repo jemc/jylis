@@ -66,4 +66,43 @@ describe "Disk persistence" do
       subject.call(%w[TREG GET key1]).should eq ["foo", 7]
     end
   end
+  
+  describe "with clustering" do
+    # Wait to establish a fully connected cluster.
+    def await_cluster(nodes)
+      nodes.each do |a|
+        nodes.each do |b|
+          next if a == b
+          a.await_line "active cluster connection established to: #{b.addr}"
+        end
+      end
+    end
+    
+    it "persists data that was replicated on restart" do
+      # (test case adapted from https://github.com/jemc/jylis/issues/10)
+      subject.run do
+        # Run another node with disk persistence, linked to the first one.
+        follower = Jylis.new(
+          seed_addrs: subject.addr,
+          disk_dir: "#{disk_dir}-fault",
+        )
+        follower.run do
+          # Wait for the cluster to be fully established.
+          await_cluster([subject, follower])
+          
+          # Write to the first node, read from the follower node.
+          subject.call(%w[MVREG SET foo 1]).should eq "OK"
+          follower.await_call_result(%w[MVREG GET foo], ["1"])
+        end
+        
+        # Shut down the follower and start it up again with no seeds, so that
+        # it does not replicate from the cluster, relying on disk only.
+        follower = Jylis.new(disk_dir: "#{disk_dir}-fault")
+        follower.run do
+          # Expect to read the follower's disk persisted data.
+          follower.await_call_result(%w[MVREG GET foo], ["1"])
+        end
+      end
+    end
+  end
 end
