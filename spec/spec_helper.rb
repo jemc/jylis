@@ -1,5 +1,6 @@
 gem "redis", "4.0.1"
 
+require "yaml"
 require_relative "support/jylis"
 require_relative "support/ujson"
 

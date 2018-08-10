@@ -7,6 +7,10 @@ describe "Documentation" do
     Dir.glob(File.join(File.dirname(__FILE__), relative_path)).sort
   end
   
+  def read(relative_path)
+    File.read(File.join(File.dirname(__FILE__), relative_path))
+  end
+  
   def interpret_output_lines(output_lines)
     output = nil
     
@@ -54,6 +58,17 @@ describe "Documentation" do
     end
     
     output
+  end
+  
+  it "links to all docs in the index of each known section" do
+    index = YAML.load(read("../docs/_data/docs.yml"))
+    index.each do |section|
+      all_docs =
+        glob("../docs/_docs/#{section.fetch("index")}/*.md")
+          .map { |file| File.split(file).last.split(".").first }
+      
+      section.fetch("docs").should contain_exactly *all_docs
+    end
   end
   
   it "provides examples for each data type that work as shown" do
