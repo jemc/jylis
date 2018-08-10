@@ -41,6 +41,12 @@ class val Database
         """)
     end
   
+  fun forget_all() =>
+    _system.log.info() and _system.log.i("database forgetting all data")
+    for repo in _map.values() do
+      repo.forget_all()
+    end
+  
   fun flush_deltas(fn: _NameTokensFn) =>
     for repo in _map.values() do
       repo.flush_deltas(fn)

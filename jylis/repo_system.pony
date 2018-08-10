@@ -9,15 +9,18 @@ primitive RepoSYSTEMHelp is HelpLeaf
     """
     The following are valid SYSTEM commands:
       SYSTEM GETLOG [count]
+      SYSTEM FORGETALL
     """
 
 class RepoSYSTEM
   let _identity: U64
+  var _database: (Database | None) = None
   
   let _log:       TLog[String] = TLog[String]
   var _log_delta: TLog[String] = TLog[String]
   
   new create(identity': U64) => _identity = identity'
+  fun ref setup(database': Database) => _database = database'
   
   fun ref delta_empty(): Bool => _log_delta.is_empty()
   fun ref flush_deltas(): Tokens =>
@@ -39,7 +42,8 @@ class RepoSYSTEM
   
   fun ref apply(r: Respond, cmd: Iterator[String]): Bool? =>
     match cmd.next()?
-    | "GETLOG" => getlog(r, _optcount(cmd))
+    | "GETLOG"    => getlog(r, _optcount(cmd))
+    | "FORGETALL" => forgetall(r)
     else error
     end
   
@@ -59,6 +63,11 @@ class RepoSYSTEM
       resp.string(value)
       resp.u64(timestamp)
     end
+    false
+  
+  fun forgetall(resp: Respond): Bool =>
+    try (_database as Database).forget_all() end
+    resp.ok()
     false
   
   ///

@@ -13,22 +13,26 @@ class val System
     dispose = SystemDispose
     repo    = SystemRepoManager(config)
     log     = config.log .> set_sys(repo)
-
-actor SystemDispose
-  var _dispose: (Dispose | None) = None
-  var _dispose_when_ready: Bool = false
   
-  be setup(
+  fun val setup(
     database: Database,
     disk: DiskAny,
     server: Server,
     cluster: Cluster)
   =>
-    _dispose = Dispose(database, disk, server, cluster) .> on_signal()
-    if _dispose_when_ready then apply() end
+    dispose.setup(Dispose(database, disk, server, cluster) .> on_signal())
+    repo.setup(database)
+
+actor SystemDispose
+  var _dispose: (Dispose | None) = None
+  var _pending: Bool = false
+  
+  be setup(dispose': Dispose) =>
+    _dispose = dispose'
+    if _pending then apply() end
   
   be apply() =>
-    try (_dispose as Dispose).dispose() else _dispose_when_ready = true end
+    try (_dispose as Dispose).dispose() else _pending = true end
 
 actor SystemRepoManager is RepoManagerAny
   let _config: Config
@@ -38,8 +42,14 @@ actor SystemRepoManager is RepoManagerAny
     _config = config'
     _core   = _core.create("SYSTEM", _config.addr.hash64())
   
+  be setup(database': Database) =>
+    _core.repo().setup(database')
+  
   be apply(resp: Respond, cmd: Array[String] val) =>
     _core(resp, cmd)
+  
+  be forget_all() =>
+    None // don't forget any SYSTEM data.
   
   be flush_deltas(fn: _NameTokensFn) =>
     _core.flush_deltas(fn)

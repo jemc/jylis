@@ -8,5 +8,5 @@ actor Main
       let disk     = DiskSetup(system) .> replay(database)
       let server   = Server(auth, system, database)
       let cluster  = Cluster(auth, system, database, disk)
-      system.dispose.setup(database, disk, server, cluster)
+      system.setup(database, disk, server, cluster)
     end

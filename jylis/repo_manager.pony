@@ -15,6 +15,7 @@ interface RepoAny
 
 interface tag RepoManagerAny
   be apply(resp: Respond, cmd: Array[String] val)
+  be forget_all()
   be flush_deltas(fn: _NameTokensFn)
   be converge_deltas(deltas: crdt.TokensIterator iso)
   be send_data(send_fn: _NameTokensFn)
@@ -33,6 +34,9 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
   
   be apply(resp: Respond, cmd: Array[String] val) =>
     _core(resp, cmd)
+  
+  be forget_all() =>
+    _core.forget_all()
   
   be flush_deltas(fn: _NameTokensFn) =>
     _core.flush_deltas(fn)
@@ -58,13 +62,18 @@ actor RepoManager[R: RepoAny ref, H: HelpLeaf val] is RepoManagerAny
 
 class RepoManagerCore[R: RepoAny ref, H: HelpLeaf val]
   let _name: String
-  let _repo: R
+  let _identity: U64
+  var _repo: R
   var _deltas_fn: (_NameTokensFn | None) = None
   var _last_proactive: U64 = 0
   var _shutdown: Bool = false
   
   new create(name': String, identity': U64) =>
-    (_name, _repo) = (name', R(identity'))
+    (_name, _identity) = (name', identity')
+    _repo = R(_identity)
+  
+  fun ref forget_all() =>
+    _repo = R(_identity)
   
   fun name(): String => _name
   fun repo(): this->R => _repo
