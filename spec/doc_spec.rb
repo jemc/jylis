@@ -59,6 +59,8 @@ describe "Documentation" do
   it "provides examples for each data type that work as shown" do
     examples_files = glob("../docs/_docs/types/*.md")
     examples_files.each do |file|
+      next if file.end_with?("system.md")
+
       examples =
         File.read(file)
             .scan(/\n```sh\n(.*?)```/m)
