@@ -13,7 +13,7 @@ bin/test: bundle.json $(shell find ${PKG} -name *.pony)
 	mkdir -p bin
 	stable env ponyc --debug -o bin ${PKG}/test
 
-compat/bin/${PKG}: compat/bundle.json $(shell find compat/${PKG} -name *.pony)
+compat/bin/${PKG}: $(shell find compat -name bundle.json) $(shell find compat/${PKG} -name *.pony)
 	git clone ${REPO_URL} --depth 1 --branch ${COMPAT_BRANCH} compat || \
 	git --work-tree compat --git-dir compat/.git pull
 	mkdir -p compat/bin
