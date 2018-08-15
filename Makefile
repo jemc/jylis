@@ -39,7 +39,7 @@ ci: test spec
 ci-setup:
 	apt-get update
 	apt-get install -y ruby
-	gem install rspec redis
+	gem install rspec:3.7.0 redis:4.0.1
 	stable fetch
 
 bin/${PKG}-release: bundle.json $(shell find ${PKG} -name *.pony)
