@@ -11,6 +11,10 @@
     {
       "type": "github",
       "repo": "jemc/pony-resp"
+    },
+    {
+      "type": "github",
+      "repo": "jemc/pony-jason"
     }
   ]
 }
