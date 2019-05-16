@@ -6,6 +6,7 @@ primitive _LogOutStreamNone
   fun tag write(data: ByteSeq) => None
   fun tag printv(data: ByteSeqIter) => None
   fun tag writev(data: ByteSeqIter) => None
+  fun tag flush() => None
 
 class val Log
   let _level: LogLevel

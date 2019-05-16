@@ -52,7 +52,7 @@ class DatabaseCodecInIterator is crdt.TokensIterator
   fun ref next[A: Any val](): A? =>
     var out: (A | None) = None // TODO: fix ponyc, leave out useless variable
     iftype A <: USize val                 then out = _iter.next()? as USize
-    elseif A <: (Float val & Real[A] val) then out = A.from[F64]((_iter.next()? as String).f64())
+    elseif A <: (Float val & Real[A] val) then out = A.from[F64]((_iter.next()? as String).f64()?)
     elseif A <: (Int val & Real[A] val)   then out = A.from[I64](_iter.next()? as I64)
     elseif A <: Bool val                  then out = (_iter.next()? as I64) != 0
     elseif A <: String val                then out = _iter.next()? as String
