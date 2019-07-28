@@ -5,6 +5,7 @@ ENV LLVM_VERSION=3.9
 RUN apk add --update \
         alpine-sdk clang-dev linux-headers libexecinfo-dev binutils-gold \
         libressl-dev pcre2-dev coreutils llvm${LLVM_VERSION}-dev
+ENV LLVM_CONFIG=llvm-config-3.9
 
 # Install Pony compiler and Pony runtime.
 ENV PONYC_GIT_URL https://github.com/ponylang/ponyc
