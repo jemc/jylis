@@ -38,7 +38,7 @@ ci: test spec
 
 ci-setup:
 	apt-get update
-	apt-get install -y ruby
+	apt-get install -y libpcre2-dev ruby
 	gem install rspec:3.7.0 redis:4.0.1
 	stable fetch
 
