@@ -2,6 +2,14 @@
   "deps": [
     {
       "type": "github",
+      "repo": "ponylang/regex"
+    },
+    {
+      "type": "github",
+      "repo": "ponylang/glob"
+    },
+    {
+      "type": "github",
       "repo": "jemc/pony-crdt"
     },
     {
