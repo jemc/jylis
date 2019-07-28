@@ -41,11 +41,11 @@ class iso FramedNotify is TCPConnectionNotify
   
   fun ref _expect_framing(conn: _Conn ref) =>
     _expect = 0
-    conn.expect(Framing.header_size())
+    try conn.expect(Framing.header_size())? end
   
   fun ref _expect_bytes(conn: _Conn ref, size: USize) =>
     _expect = size
-    conn.expect(size)
+    try conn.expect(size)? end
   
   fun ref sent(conn: _Conn ref, data: ByteSeq): ByteSeq =>
     conn.write_final(Framing.write_header(data.size()))
